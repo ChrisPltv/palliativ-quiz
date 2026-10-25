@@ -1,0 +1,2037 @@
+<title>Palliativ-Quiz</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Public+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: eine ruhige Spalte. Start mit Testzusammenstellung, dann Fortschrittsband mit einem Segment je Frage, Frage, Antworten, Erklärung, am Ende Auswertung. */
+:root {
+  --bg: #eef2f2;
+  --surface: #ffffff;
+  --ink: #17262b;
+  --muted: #55676c;
+  --line: #d3dcdd;
+  --accent: #245b6b;
+  --accent-ink: #1b4654;
+  --accent-soft: #dbe9ed;
+  --on-accent: #ffffff;
+  --ok: #26704a;
+  --ok-soft: #dcefe3;
+  --bad: #a93a2a;
+  --bad-soft: #f6e0db;
+  --warn: #7a4e00;
+  --warn-soft: #f7ebd0;
+  --font-display: "Newsreader", Georgia, "Times New Roman", serif;
+  --font-body: "Public Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111a1d;
+    --surface: #1a2529;
+    --ink: #e5eef0;
+    --muted: #9aadb2;
+    --line: #2d3d42;
+    --accent: #7db6c6;
+    --accent-ink: #a9d3df;
+    --accent-soft: #20383f;
+    --on-accent: #0f1b1f;
+    --ok: #6fc690;
+    --ok-soft: #1a3427;
+    --bad: #f08c7a;
+    --bad-soft: #3a211d;
+    --warn: #e8bd6a;
+    --warn-soft: #362b14;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111a1d;
+  --surface: #1a2529;
+  --ink: #e5eef0;
+  --muted: #9aadb2;
+  --line: #2d3d42;
+  --accent: #7db6c6;
+  --accent-ink: #a9d3df;
+  --accent-soft: #20383f;
+  --on-accent: #0f1b1f;
+  --ok: #6fc690;
+  --ok-soft: #1a3427;
+  --bad: #f08c7a;
+  --bad-soft: #3a211d;
+  --warn: #e8bd6a;
+  --warn-soft: #362b14;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.55;
+  padding-block: 20px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 680px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 500; text-wrap: balance; margin: 0; line-height: 1.2; }
+p { margin: 0; }
+a { color: var(--accent-ink); text-underline-offset: 2px; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+.eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); }
+.muted { color: var(--muted); }
+.small { font-size: 13px; }
+
+/* Start */
+.hero { display: flex; flex-direction: column; gap: 12px; padding-top: 8px; }
+.hero h1 { font-size: clamp(32px, 8vw, 44px); letter-spacing: -.01em; }
+.hero .lead { font-size: 16px; max-width: 58ch; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: flex; flex-direction: column; gap: 16px; }
+.panel h2 { font-size: 20px; }
+.panel h3 { font-size: 17px; }
+.legend { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.legend li { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 12px; align-items: start; }
+@media (max-width: 420px) { .legend li { grid-template-columns: minmax(0, 1fr); gap: 4px; } }
+.facts { display: flex; flex-wrap: wrap; gap: 8px 18px; }
+.facts span { font-size: 13px; color: var(--muted); }
+.facts b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* Einstellungen */
+fieldset { border: 0; margin: 0; padding: 0; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+legend { padding: 0; font-weight: 600; font-size: 14px; }
+.seg { display: flex; flex-wrap: wrap; gap: 8px; }
+.seg label { position: relative; flex: 1 1 0; min-width: 0; }
+.seg input { position: absolute; opacity: 0; inset: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; z-index: 1; }
+.seg span { display: flex; flex-direction: column; gap: 2px; align-items: center; justify-content: center; text-align: center; min-height: 48px; padding: 8px 6px; border-radius: 8px; border: 1.5px solid var(--line); background: var(--bg); font-weight: 600; }
+.seg small { font-size: 12px; font-weight: 500; opacity: .85; }
+.seg input:checked + span { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.seg input:focus-visible + span { outline: 3px solid var(--accent); outline-offset: 2px; }
+.topics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+@media (max-width: 460px) { .topics { grid-template-columns: minmax(0, 1fr); } }
+.topic { position: relative; display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 8px; border: 1.5px solid var(--line); background: var(--bg); cursor: pointer; min-height: 48px; }
+.topic input { width: 18px; height: 18px; margin: 0; accent-color: var(--accent); }
+.topic .cnt { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.topic:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+.topic:has(input:focus-visible) { outline: 3px solid var(--accent); outline-offset: 2px; }
+.topicbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.linkbtn { font: inherit; font-size: 13px; font-weight: 600; background: none; border: 0; color: var(--accent-ink); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; padding: 6px 4px; min-height: 36px; }
+.info { background: var(--accent-soft); border-radius: 8px; padding: 12px 14px; font-size: 14px; display: flex; flex-direction: column; gap: 4px; }
+.info b { font-variant-numeric: tabular-nums; }
+
+/* Chips */
+.chip { display: inline-block; font-size: 12px; font-weight: 600; line-height: 1; padding: 6px 9px; border-radius: 4px; letter-spacing: .02em; white-space: nowrap; width: fit-content; }
+.chip-verbindlich { background: var(--accent); color: var(--on-accent); border: 1px solid var(--accent); }
+.chip-leitlinie { background: transparent; color: var(--accent-ink); border: 1.5px solid var(--accent); }
+.chip-definition { background: var(--accent-soft); color: var(--accent-ink); border: 1px solid var(--accent-soft); }
+.chip-konsens { background: transparent; color: var(--muted); border: 1.5px dashed var(--muted); }
+.chip-uneinheitlich { background: var(--warn-soft); color: var(--warn); border: 1.5px solid var(--warn); }
+
+/* Buttons */
+.btn { font: inherit; font-weight: 600; font-size: 15px; padding: 13px 20px; border-radius: 8px; border: 1.5px solid var(--accent); cursor: pointer; min-height: 48px; }
+.btn-primary { background: var(--accent); color: var(--on-accent); }
+.btn-primary:hover:not(:disabled) { filter: brightness(1.08); }
+.btn-ghost { background: transparent; color: var(--accent-ink); }
+.btn-ghost:hover:not(:disabled) { background: var(--accent-soft); }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; }
+
+/* Topbar */
+.topbar { display: flex; flex-direction: column; gap: 10px; position: sticky; top: env(safe-area-inset-top, 0px); background: var(--bg); padding-block: 8px; z-index: 5; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); background: var(--bg); z-index: 10; }
+.topline { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.score { font-variant-numeric: tabular-nums; font-size: 14px; color: var(--muted); }
+.score b { color: var(--ink); font-size: 18px; font-weight: 700; }
+.ticks { display: flex; gap: 3px; }
+.tick { flex: 1 1 0; min-width: 0; height: 6px; border-radius: 3px; background: var(--line); }
+.tick.cur { background: var(--accent); }
+.tick.ok { background: var(--ok); }
+.tick.bad { background: var(--bad); }
+
+/* Frage */
+.qcard { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 20px 18px; display: flex; flex-direction: column; gap: 16px; }
+.qmeta { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+.qtext { font-family: var(--font-display); font-size: clamp(20px, 5.2vw, 24px); line-height: 1.3; font-weight: 500; text-wrap: pretty; }
+.hint { font-size: 13px; color: var(--muted); }
+.hint.multihint { font-size: 14px; color: var(--ink); background: var(--accent-soft); border: 1.5px solid var(--accent); border-radius: 8px; padding: 10px 12px; }
+.multibadge { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; line-height: 1; padding: 6px 9px; border-radius: 4px; letter-spacing: .02em; background: var(--ink); color: var(--bg); white-space: nowrap; }
+.multibadge::before { content: ""; width: 10px; height: 10px; border: 2px solid currentColor; border-radius: 2px; box-shadow: 3px -3px 0 -1px currentColor; margin-right: 3px; }
+.opts { display: flex; flex-direction: column; gap: 10px; }
+.opt { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 12px; text-align: left; font: inherit; color: inherit; background: var(--bg); border: 1.5px solid var(--line); border-radius: 8px; padding: 13px 14px; cursor: pointer; width: 100%; align-items: start; }
+.opt:hover:not(:disabled) { border-color: var(--accent); }
+.opt:disabled { cursor: default; }
+.opt .ltr { width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid var(--muted); display: grid; place-items: center; font-size: 13px; font-weight: 700; color: var(--muted); }
+.multi .opt .ltr { border-radius: 6px; }
+.opt .txt { padding-top: 2px; }
+.opt .tag { display: block; margin-top: 4px; font-size: 12px; font-weight: 700; letter-spacing: .03em; }
+.opt.sel { border-color: var(--accent); background: var(--accent-soft); }
+.opt.sel .ltr { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.opt.right { background: var(--ok-soft); border-color: var(--ok); }
+.opt.right .ltr { background: var(--ok); border-color: var(--ok); color: var(--surface); }
+.opt.right .tag { color: var(--ok); }
+.opt.wrong { background: var(--bad-soft); border-color: var(--bad); }
+.opt.wrong .ltr { background: var(--bad); border-color: var(--bad); color: var(--surface); }
+.opt.wrong .tag { color: var(--bad); }
+.opt.dim { opacity: .62; }
+
+/* Feedback */
+.fb { border-top: 1px solid var(--line); padding-top: 16px; display: flex; flex-direction: column; gap: 14px; scroll-margin-top: 90px; }
+.verdict { display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-size: 22px; font-weight: 600; }
+.verdict svg { flex: none; }
+.verdict.ok { color: var(--ok); }
+.verdict.bad { color: var(--bad); }
+.verdict.part { color: var(--warn); }
+.why { display: flex; flex-direction: column; gap: 10px; }
+.why p { max-width: 62ch; }
+.why .lbl { font-weight: 600; }
+.merk { background: var(--accent-soft); border-radius: 8px; padding: 12px 14px; font-size: 14px; }
+.merk b { display: block; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent-ink); margin-bottom: 2px; }
+.warnbox { background: var(--warn-soft); border: 1.5px solid var(--warn); border-radius: 8px; padding: 12px 14px; font-size: 14px; color: var(--ink); }
+.warnbox b { display: block; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--warn); margin-bottom: 2px; }
+.notebox { border: 1.5px solid var(--line); border-radius: 8px; padding: 12px 14px; font-size: 14px; }
+.notebox b { display: block; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 2px; }
+.einord { display: flex; flex-direction: column; gap: 8px; font-size: 14px; }
+.einord .row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.einord ul { margin: 0; padding-left: 18px; display: grid; gap: 2px; }
+.srcs { font-size: 13px; color: var(--muted); display: flex; flex-direction: column; gap: 4px; }
+.srcs ul { margin: 0; padding-left: 18px; display: grid; gap: 3px; }
+.srcs a { overflow-wrap: anywhere; }
+.srcs li { overflow-wrap: anywhere; }
+
+/* Ergebnis */
+.big { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.big .n { font-family: var(--font-display); font-size: 64px; line-height: 1; font-weight: 500; font-variant-numeric: tabular-nums; }
+.big .of { font-size: 20px; color: var(--muted); }
+.big .pct { font-family: var(--font-display); font-size: 28px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--accent-ink); }
+.counts { display: flex; flex-wrap: wrap; gap: 8px; }
+.pill { font-size: 13px; font-weight: 600; padding: 7px 11px; border-radius: 6px; font-variant-numeric: tabular-nums; }
+.pill.ok { background: var(--ok-soft); color: var(--ok); }
+.pill.bad { background: var(--bad-soft); color: var(--bad); }
+.pill.neutral { background: var(--accent-soft); color: var(--accent-ink); }
+.cats { display: flex; flex-direction: column; gap: 14px; }
+.cat { display: grid; gap: 6px; }
+.cat .hd { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.cat .nm { font-weight: 600; }
+.cat .ct { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.bar { height: 10px; border-radius: 5px; background: var(--line); overflow: hidden; }
+.bar i { display: block; height: 100%; border-radius: 5px; }
+.bar i.full { background: var(--ok); }
+.bar i.part { background: var(--bad); }
+.bar i.mid { background: var(--warn); }
+.state { font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.state.full { color: var(--ok); }
+.state.part { color: var(--bad); }
+.state.mid { color: var(--warn); }
+.gapgroup { display: flex; flex-direction: column; gap: 14px; }
+.gapgroup + .gapgroup { border-top: 1px solid var(--line); padding-top: 16px; }
+.gap { display: flex; flex-direction: column; gap: 10px; }
+.gap + .gap { border-top: 1px dashed var(--line); padding-top: 14px; }
+.gap h4 { margin: 0; font-family: var(--font-display); font-size: 17px; font-weight: 500; line-height: 1.3; }
+.pair { display: grid; gap: 6px; font-size: 14px; }
+.pair div { padding: 8px 10px; border-radius: 6px; }
+.pair .you { background: var(--bad-soft); }
+.pair .corr { background: var(--ok-soft); }
+.pair b { display: block; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; opacity: .85; }
+details.review { border: 1px solid var(--line); border-radius: 8px; }
+details.review summary { cursor: pointer; padding: 12px 14px; font-weight: 600; min-height: 48px; display: flex; align-items: center; }
+.rv { display: flex; flex-direction: column; gap: 0; }
+.rvitem { padding: 12px 14px; border-top: 1px solid var(--line); display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 10px; }
+.rvitem .mk { font-weight: 700; }
+.rvitem .mk.ok { color: var(--ok); }
+.rvitem .mk.bad { color: var(--bad); }
+.rvitem .qq { font-weight: 500; }
+.rvitem .aa { font-size: 13px; color: var(--muted); }
+.foot { font-size: 12.5px; color: var(--muted); max-width: 66ch; }
+.srclist { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 13.5px; }
+.srclist a, .srclist li { overflow-wrap: anywhere; }
+@media (prefers-reduced-motion: no-preference) {
+  .bar i { transition: width .5s ease; }
+}
+</style>
+
+<div class="wrap" id="app"></div>
+
+<script>
+var SRC = {
+  LL: { t: "S3-Leitlinie Palliativmedizin für Patienten mit einer nicht heilbaren Krebserkrankung (Leitlinienprogramm Onkologie)", u: "https://www.leitlinienprogramm-onkologie.de/leitlinien/palliativmedizin/" },
+  AERZTEBLATT19: { t: "Ärzteblatt (2019): Erweiterte S3-Leitlinie zur Palliativversorgung erschienen", u: "https://www.aerzteblatt.de/news/erweiterte-s3-leitlinie-zur-palliativversorgung-bei-nicht-heilbaren-krebserkrankungen-erschienen-999f90f3-028c-42d9-be9a-7371a51ec167" },
+  AERZTEBLATT26: { t: "Ärzteblatt (31.07.2026): S3-Leitlinie zur Palliativbetreuung aktualisiert", u: "https://www.aerzteblatt.de/news/s3-leitlinie-zur-palliativbetreuung-bei-nicht-heilbarer-krebserkrankung-aktualisiert-b8931f44-a150-49e8-b0e1-58f99c75ad94" },
+  WHO: { t: "WHO: Palliative care (Fact sheet)", u: "https://www.who.int/news-room/fact-sheets/detail/palliative-care" },
+  WHODEF: { t: "WHO-Definition Palliative Care, englischer Wortlaut (Sekundärquelle)", u: "https://pressbooks.gvsu.edu/palliativecarenotes/chapter/who-definition-of-palliative-care/" },
+  COPD: { t: "Thieme: Palliative Therapie der Atemnot bei COPD mit Opioiden", u: "https://www.thieme-connect.de/products/ejournals/abstract/10.1055/s-0043-103033" },
+  OBST: { t: "Obstipation bei Patienten mit nicht-heilbarer Krebserkrankung: Empfehlungen der S3-Leitlinie Palliativmedizin", u: "https://archive-ouverte.unige.ch/unige:158691" },
+  THIEME_ST: { t: "Thieme (2023): Medizinische und therapeutische Aspekte der Sterbebegleitung", u: "https://www.thieme-connect.com/products/ejournals/pdf/10.1055/a-1977-7297.pdf" },
+  AERZTEZ: { t: "Ärzte Zeitung: Sterbephase, Mundtrockenheit besonders belastend", u: "https://www.aerztezeitung.de/Medizin/Sterbephase-Mundtrockenheit-besonders-belastend-305322.html" },
+  FLEX: { t: "DocCheck Flexikon: Terminale Rasselatmung", u: "https://flexikon.doccheck.com/de/Terminales_Rasseln" },
+  KBV: { t: "KBV: Spezialisierte ambulante Palliativversorgung verordnen", u: "https://www.kbv.de/praxis/verordnungen/spezialisierte-ambulante-palliativversorgung" },
+  SVK: { t: "Sozialversicherung kompetent: Spezialisierte ambulante Palliativversorgung", u: "https://sozialversicherung-kompetent.de/krankenversicherung/leistungsrecht/863-spezialisierte-ambulante-palliativversorgung.html" },
+  SAPVRL: { t: "G-BA: SAPV-Richtlinie", u: "https://www.g-ba.de/downloads/62-492-2988/SAPV-RL_2022-09-15_iK-2022-11-24.pdf" },
+  GKVHOSP: { t: "GKV-Spitzenverband: Stationäre Hospizversorgung", u: "https://www.gkv-spitzenverband.de/krankenversicherung/hospiz_und_palliativversorgung/stat_hospizleistung/stat_hospiz/stat_hospizversorgung.jsp" },
+  SGB39A: { t: "§ 39a SGB V (Stationäre und ambulante Hospizleistungen)", u: "https://www.gesetze-im-internet.de/sgb_5/__39a.html" },
+  SGB39B: { t: "§ 39b SGB V (Hospiz- und Palliativberatung durch die Krankenkassen)", u: "https://www.gesetze-im-internet.de/sgb_5/__39b.html" },
+  SGB132G: { t: "§ 132g SGB V (Gesundheitliche Versorgungsplanung für die letzte Lebensphase)", u: "https://www.gesetze-im-internet.de/sgb_5/__132g.html" },
+  BGB1827: { t: "§ 1827 BGB (Patientenverfügung)", u: "https://www.gesetze-im-internet.de/bgb/__1827.html" },
+  BGB1828: { t: "§ 1828 BGB (Gespräch zur Feststellung des Patientenwillens)", u: "https://www.gesetze-im-internet.de/bgb/__1828.html" },
+  BGB1358: { t: "§ 1358 BGB (Notvertretungsrecht für Ehegatten)", u: "https://www.gesetze-im-internet.de/bgb/__1358.html" },
+  BGB630E: { t: "§ 630e BGB (Aufklärungspflichten)", u: "https://www.gesetze-im-internet.de/bgb/__630e.html" },
+  STGB216: { t: "§ 216 StGB (Tötung auf Verlangen)", u: "https://www.gesetze-im-internet.de/stgb/__216.html" },
+  STGB203: { t: "§ 203 StGB (Verletzung von Privatgeheimnissen)", u: "https://www.gesetze-im-internet.de/stgb/__203.html" },
+  BTMVV: { t: "Betäubungsmittel-Verschreibungsverordnung (BtMVV)", u: "https://www.gesetze-im-internet.de/btmvv_1998/" },
+  PFLEGEZG: { t: "§ 3 Pflegezeitgesetz (Pflegezeit, Begleitung in der letzten Lebensphase)", u: "https://www.gesetze-im-internet.de/pflegezg/__3.html" },
+  BVERFG: { t: "Ärzteblatt: Bundesverfassungsgericht erklärt Sterbehilfeparagrafen für nichtig", u: "https://www.aerzteblatt.de/nachrichten/109605/Bundesverfassungsgericht-erklaert-Sterbehilfeparagrafen-fuer-nichtig" },
+  BGH: { t: "BGH, Urteil vom 25.06.2010, 2 StR 454/09 (Volltext bei HRR-Strafrecht)", u: "https://www.hrr-strafrecht.de/hrr/2/09/2-454-09.pdf" },
+  CHARTA: { t: "Charta zur Betreuung schwerstkranker und sterbender Menschen in Deutschland", u: "https://www.charta-zur-betreuung-sterbender.de/" },
+  TEMEL: { t: "Temel JS et al.: Early palliative care for patients with metastatic non-small-cell lung cancer. N Engl J Med 2010;363:733-742" },
+  ESAS: { t: "Bruera E et al.: The Edmonton Symptom Assessment System (ESAS). J Palliat Care 1991;7(2):6-9" },
+  EAPCDEM: { t: "van der Steen JT et al.: White paper defining optimal palliative care in older people with dementia (EAPC). Palliat Med 2014;28:197-209" },
+  AGAR: { t: "Agar MR et al.: Efficacy of oral risperidone, haloperidol, or placebo for symptoms of delirium among patients in palliative care. JAMA Intern Med 2017;177:34-42" },
+  BRUERA13: { t: "Bruera E et al.: Parenteral hydration in patients with advanced cancer. J Clin Oncol 2013;31:111-118" },
+  SPIKES: { t: "Baile WF et al.: SPIKES, a six-step protocol for delivering bad news. Oncologist 2000;5:302-311" },
+  NURSE: { t: "Back AL et al.: Approaching difficult communication tasks in oncology. CA Cancer J Clin 2005;55:164-177" },
+  CHOCH2011: { t: "Chochinov HM et al.: Effect of dignity therapy on distress and end-of-life experience in terminally ill patients. Lancet Oncol 2011;12:753-762" },
+  STROEBE: { t: "Stroebe M, Schut H: The dual process model of coping with bereavement. Death Studies 1999;23:197-224" },
+  WORDEN: { t: "Worden JW: Grief Counseling and Grief Therapy (Lehrbuch, zahlreiche Auflagen)" },
+  KR: { t: "Kübler-Ross E: On Death and Dying (1969)" },
+  CURRIER: { t: "Currier JM, Neimeyer RA, Berman JS: The effectiveness of psychotherapeutic interventions for bereaved persons. Psychol Bull 2008;134:648-661" },
+  ICD11: { t: "WHO: ICD-11, 6B42 Prolonged grief disorder" },
+  BEAUCH: { t: "Beauchamp TL, Childress JF: Principles of Biomedical Ethics (Lehrbuch)" },
+  CHERNY: { t: "Cherny NI, Radbruch L: EAPC recommended framework for the use of sedation in palliative care. Palliat Med 2009;23:581-593" },
+  BAEK: { t: "Bundesärztekammer: Grundsätze zur ärztlichen Sterbebegleitung. Dtsch Arztebl 2011;108(7):A346-348" }
+};
+
+var RAW_A = [
+/* ===== GRUNDLAGEN ===== */
+{ c: "grund", k: ["definition"],
+  q: "Welche Aussage entspricht der WHO-Definition von Palliative Care (2002)?",
+  o: ["Sie verbessert die Lebensqualität von Betroffenen und Angehörigen und kann früh im Verlauf beginnen.",
+      "Sie beginnt erst, wenn alle krankheitsbezogenen Behandlungen endgültig beendet worden sind.",
+      "Sie zielt darauf, den Todeszeitpunkt zu beeinflussen, wenn das Leiden der Betroffenen besonders groß geworden ist.",
+      "Sie richtet sich in erster Linie an Menschen mit einer fortgeschrittenen Krebserkrankung."],
+  a: [0],
+  e: "Die Definition nennt ausdrücklich den frühen Beginn, zum Beispiel parallel zu Chemo- oder Strahlentherapie. Sie berücksichtigt körperliche, psychosoziale und spirituelle Probleme und schließt Angehörige ein. Sie spricht von lebensbedrohlichen Erkrankungen allgemein, nicht nur von Krebs, und will den Tod weder beschleunigen noch hinauszögern.",
+  m: "Lebensqualität für Betroffene und Angehörige, früh integrierbar, weder Lebensverkürzung noch -verlängerung als Ziel.",
+  n: "Das ist eine Definition der WHO, an die sich auch die Deutsche Gesellschaft für Palliativmedizin anlehnt. Sie beschreibt das fachliche Selbstverständnis und ist keine Rechtsnorm.",
+  s: ["WHODEF", "LL"] },
+
+{ c: "grund", k: ["verbindlich", "konsens"],
+  q: "Frau G. (87, Herzinsuffizienz) lebt im Heim. Trotz guter Pflege und Hausarztbetreuung bleiben Atemnot, Angst und Schmerzen schwer zu kontrollieren. Was ist ein sinnvoller Schritt?",
+  o: ["Die Hausärztin bittet das spezialisierte ambulante Palliativteam um Mitbehandlung bei komplexen Symptomen.",
+      "Das Heim verlegt Frau G. sofort in ein stationäres Hospiz, weil dort mehr Fachwissen vorhanden ist.",
+      "Das Pflegeteam wartet ab, bis sich die Sterbephase deutlich ankündigt, und handelt erst dann.",
+      "Die Hausärztin übernimmt die Versorgung weiter allein, denn spezialisierte Teams sind nur für Krebs zuständig."],
+  a: [0],
+  e: "Die Basis bleibt die allgemeine Palliativversorgung durch Hausärztin und Pflegeteam. Bei komplexem Bedarf kommt ein spezialisiertes Team hinzu (SAPV), auch bei nicht-onkologischen Erkrankungen. Ein Hospiz setzt eigene Voraussetzungen voraus und ist keine automatische Folge. Abwarten verlängert unnötig das Leiden.",
+  m: "Allgemein ist die Basis für alle, spezialisiert ist die Ergänzung bei komplexem Bedarf.",
+  s: ["KBV", "SAPVRL"] },
+
+{ c: "grund", k: ["definition", "uneinheitlich"],
+  q: "Was sagt die Studienlage zur frühen Integration von Palliativversorgung bei fortgeschrittener Krebserkrankung?",
+  o: ["Sie kann Lebensqualität und Stimmung verbessern, ein Überlebensvorteil ist aber nicht überall gezeigt.",
+      "Sie verkürzt nachweislich die Lebenszeit und sollte daher möglichst spät im Verlauf beginnen.",
+      "Zu diesem Thema gibt es bislang keine aussagekräftigen Studien, deshalb bleibt die WHO-Empfehlung weitgehend unbelegt.",
+      "In allen Studien zeigt sich ein klarer Überlebensvorteil gegenüber der Standardversorgung."],
+  a: [0],
+  e: "Die bekannte Studie von Temel et al. (2010) zeigte bei Lungenkrebs bessere Lebensqualität und Stimmung und ein längeres Überleben. Der Überlebensvorteil wurde in anderen Studien nicht durchgehend bestätigt. Vorteile für die Lebensqualität sind besser belegt.",
+  m: "Früh und begleitend: ja. Ein sicherer Überlebensvorteil: nicht für alle Gruppen belegt.",
+  u: "Die Evidenz ist uneinheitlich. Studien unterscheiden sich in Erkrankung, Setting und Intervention.",
+  s: ["WHODEF", "TEMEL"] },
+
+{ c: "grund", k: ["definition"],
+  q: "Herr A. (79, Prostatakrebs) hat starke Schmerzen. Er sorgt sich um seine Frau, fühlt sich allein und fragt nach dem Sinn. Welches Konzept beschreibt das am besten?",
+  o: ["Total Pain: Leiden hat körperliche, psychische, soziale und spirituelle Anteile, die sich beeinflussen.",
+      "Breakthrough Pain: kurzzeitige Schmerzspitzen, die trotz gleichmäßiger Basismedikation auftreten.",
+      "Phantomschmerz: Schmerzempfinden in einem Körperteil, der nicht mehr vorhanden ist.",
+      "Somatische Fixierung: Beschwerden werden vorrangig auf körperliche Ursachen zurückgeführt und behandelt."],
+  a: [0],
+  e: "Total Pain geht auf Cicely Saunders zurück und prägte die Hospizbewegung. Es erklärt, warum Angst, Einsamkeit oder Sinnfragen Schmerzen verstärken können und warum ein Team aus mehreren Berufsgruppen nötig ist.",
+  m: "Leiden hat vier Dimensionen: körperlich, psychisch, sozial, spirituell.",
+  s: ["WHO"] },
+
+{ c: "grund", k: ["definition"],
+  q: "Welche Merkmale gehören zur WHO-Definition von Palliative Care?",
+  o: ["Sie versteht das Sterben als normalen Prozess und will den Tod weder beschleunigen noch hinauszögern.",
+      "Sie beschränkt sich auf die Behandlung körperlicher Symptome und überlässt anderes Fachleuten.",
+      "Sie bezieht Angehörige ein, bei Bedarf auch in der Zeit der Trauer nach dem Tod.",
+      "Sie beginnt erst dann, wenn eine Heilung der Erkrankung nicht mehr möglich erscheint."],
+  a: [0, 2],
+  e: "Palliative Care umfasst körperliche, psychosoziale und spirituelle Aspekte und wird im Team geleistet. Sie kann früh im Krankheitsverlauf beginnen. Ein Beschleunigen des Todes gehört nicht dazu, die Tötung auf Verlangen ist in Deutschland strafbar (§ 216 StGB).",
+  m: "Weder beschleunigen noch hinauszögern. Team, Angehörige, alle Dimensionen des Leidens.",
+  s: ["WHODEF", "STGB216"] },
+
+{ c: "grund", k: ["konsens", "verbindlich"],
+  q: "Was unterscheidet eine Palliativstation von einem stationären Hospiz?",
+  o: ["Die Palliativstation gehört zum Krankenhaus und strebt Symptomkontrolle und möglichst eine Entlassung an.",
+      "Die Palliativstation nimmt überwiegend Menschen mit Krebs auf, das Hospiz vor allem andere Erkrankungen.",
+      "Das Hospiz ist ein Lebensort ohne Krankenhausbehandlung und wird überwiegend durch Spenden finanziert.",
+      "Die Palliativstation arbeitet ohne Pflegekräfte, weil dort überwiegend ärztliche Behandlung stattfindet und gesteuert wird."],
+  a: [0],
+  e: "Auf der Palliativstation wird stabilisiert, viele Betroffene gehen anschließend nach Hause oder in eine Einrichtung. Ins Hospiz kommen Menschen mit begrenzter Lebenserwartung, die keine Krankenhausbehandlung brauchen, aber zu Hause nicht versorgt werden können. Die Krankenkassen tragen den größten Teil der Kosten, Spenden ergänzen.",
+  m: "Palliativstation: Krankenhaus mit Ziel Stabilisierung. Hospiz: Lebensort in der letzten Phase.",
+  s: ["SGB39A", "GKVHOSP"] },
+
+{ c: "grund", k: ["verbindlich", "konsens"],
+  q: "Frau H. (90) im Heim bekommt kaum Besuch und hat Angst vor den Nächten. Was kann ein ambulanter Hospizdienst leisten?",
+  o: ["Ehrenamtliche begleiten sie mit Zeit, Gesprächen und Anwesenheit und entlasten so auch Pflegekräfte.",
+      "Ehrenamtliche übernehmen die Grundpflege und geben Medikamente, damit das Pflegeteam spürbar entlastet wird.",
+      "Ehrenamtliche entscheiden gemeinsam mit der Ärztin, ob einzelne Therapien beendet werden.",
+      "Ehrenamtliche ersetzen nachts das Palliativteam, sodass der Hintergrunddienst entfallen kann."],
+  a: [0],
+  e: "Ehrenamtliche ergänzen Pflege und Medizin, ohne sie zu ersetzen. Sie übernehmen keine pflegerischen oder ärztlichen Aufgaben. Die Förderung ambulanter Hospizdienste ist in § 39a SGB V geregelt.",
+  m: "Ehrenamt ergänzt, ersetzt keine Pflege und ärztliche Versorgung.",
+  s: ["SGB39A"] },
+
+{ c: "grund", k: ["leitlinie", "konsens"],
+  q: "Wie werden Therapieziele in der Palliativversorgung am besten festgelegt?",
+  o: ["Gemeinsam mit den Betroffenen, an deren Werten orientiert, und bei veränderter Lage erneut überprüft.",
+      "Einmal bei der Aufnahme durch das ärztliche Team, danach bleiben sie unverändert bestehen.",
+      "Nach den Wünschen der Angehörigen, weil Betroffene oft nicht mehr klar entscheiden können.",
+      "Nach den Standardvorgaben der Einrichtung, damit alle Bewohnerinnen und Bewohner gleich behandelt werden."],
+  a: [0],
+  e: "Therapieziele sind dynamisch und ändern sich mit Verlauf, Belastung und persönlichen Prioritäten. Maßgeblich sind die Betroffenen selbst oder, bei fehlender Einwilligungsfähigkeit, ihr vorab geäußerter oder mutmaßlicher Wille. Angehörige werden einbezogen, entscheiden aber nicht allein.",
+  m: "Ziele gemeinsam festlegen, dokumentieren und regelmäßig überprüfen.",
+  s: ["LL", "BGB1827"] },
+
+{ c: "grund", k: ["leitlinie", "konsens"],
+  q: "Wie sollten belastende Symptome in der Palliativversorgung erfasst werden?",
+  o: ["Als Selbsteinschätzung mit einem einfachen Instrument wie ESAS, regelmäßig und im Verlauf verglichen.",
+      "Durch den Eindruck der Pflegekräfte, der in der Pflegeübergabe knapp mündlich weitergegeben und notiert wird.",
+      "Einmal bei der Aufnahme, weil sich die Beschwerden danach kaum noch verändern werden.",
+      "Schmerzen lassen sich gut messen, bei anderen Symptomen genügt das Gespräch."],
+  a: [0],
+  e: "Die Selbstauskunft ist der Maßstab, weil Dritte Symptome häufig unter- oder überschätzen. Das Edmonton Symptom Assessment System (ESAS) ist ein verbreitetes Beispiel. Für Menschen, die sich nicht äußern können, gibt es Beobachtungsinstrumente.",
+  m: "Selbstauskunft zuerst, standardisiert und wiederholt.",
+  s: ["LL", "ESAS"] },
+
+{ c: "grund", k: ["leitlinie", "uneinheitlich"],
+  q: "Für welche Patientengruppe gilt die S3-Leitlinie „Palliativmedizin“ ausdrücklich?",
+  o: ["Für Erwachsene mit einer nicht heilbaren Krebserkrankung, bei anderen Diagnosen ist die Übertragung nicht überall belegt.",
+      "Für alle Menschen mit einer lebensbedrohlichen Erkrankung, etwa auch Herzinsuffizienz oder Demenz.",
+      "Für Kinder und Jugendliche mit einer lebensverkürzenden Erkrankung und deren Familien, die dauerhaft begleitet werden.",
+      "Für Menschen in der Sterbephase, also in den letzten Tagen vor dem erwarteten Tod."],
+  a: [0],
+  e: "Die Leitlinie nennt Krebserkrankungen als Geltungsbereich. Palliativer Bedarf besteht aber auch bei COPD, Herzinsuffizienz, Demenz, ALS und anderen Erkrankungen. Empfehlungen können dort oft sinnvoll sein, sind aber nicht automatisch gleich gut belegt.",
+  m: "Die S3-Leitlinie gilt für Krebserkrankungen. Bei anderen Diagnosen auf eigene Leitlinien oder Expertenempfehlungen achten.",
+  u: "Es gibt keine einheitliche Leitlinie für alle Diagnosen. Für nicht-onkologische Erkrankungen gelten teils eigene Leitlinien oder Expertenempfehlungen.",
+  s: ["LL", "WHO"] },
+
+{ c: "grund", k: ["konsens"],
+  q: "Was ist die „Charta zur Betreuung schwerstkranker und sterbender Menschen in Deutschland“?",
+  o: ["Ein gemeinsames Leitbild von Fachgesellschaften und Organisationen, also eine Selbstverpflichtung ohne Gesetzeskraft.",
+      "Ein Gesetz, das Mindeststandards für Pflegeheime bei der Versorgung Sterbender verbindlich festlegt.",
+      "Eine Gebührenordnung, nach der ambulante Palliativleistungen mit den Krankenkassen abgerechnet werden.",
+      "Ein Urteil des Bundesverfassungsgerichts, das die Rechte Sterbender gegenüber Pflegeeinrichtungen und Trägern festlegt und durchsetzt."],
+  a: [0],
+  e: "Die Charta wurde in einem Prozess unter anderem mit der Deutschen Gesellschaft für Palliativmedizin, dem Deutschen Hospiz- und PalliativVerband und der Bundesärztekammer erarbeitet. Sie formuliert Ziele in fünf Leitsätzen, ist aber nicht rechtsverbindlich.",
+  m: "Charta = gemeinsames Leitbild, keine Rechtsnorm.",
+  s: ["CHARTA"] },
+
+/* ===== SCHMERZTHERAPIE ===== */
+{ c: "schmerz", k: ["konsens"],
+  q: "Herr K. (84, fortgeschrittene Demenz) spricht kaum noch. Bei der Körperpflege stöhnt er, wehrt ab und ist nachts unruhig. Sie vermuten Schmerzen. Was ist der sinnvollste nächste Schritt?",
+  o: ["Ein Beobachtungsinstrument wie BESD nutzen, den Verlauf dokumentieren und ärztlich besprechen.",
+      "Abwarten, denn wenn er wirklich Schmerzen hätte, würde er sich auch deutlich dazu äußern können.",
+      "Ihm abends ein Beruhigungsmittel anbieten, damit er besser schläft und ruhiger wird.",
+      "Die Tochter nach seinem Schmerzempfinden fragen und es dabei bewenden lassen."],
+  a: [0],
+  e: "Menschen mit Demenz empfinden Schmerz, können ihn aber oft nicht mehr mitteilen. Unruhe, Abwehr bei der Pflege oder Rückzug sind häufige Hinweise. Ein Beobachtungsinstrument macht die Einschätzung nachvollziehbar, die Ärztin entscheidet über die Therapie. Ein Beruhigungsmittel würde ein mögliches Schmerzproblem nur verdecken. Die Angehörigen zu fragen ist hilfreich, ersetzt aber die strukturierte Erfassung nicht.",
+  m: "Unruhe bei Demenz: zuerst Schmerz ausschließen, dann beruhigen.",
+  s: ["EAPCDEM"] },
+
+{ c: "schmerz", k: ["leitlinie"],
+  q: "Frau M. (79, Brustkrebs mit Knochenmetastasen) erhält morgens und abends ein retardiertes Opioid. Nachmittags hat sie bei der Mobilisation starke Schmerzspitzen. Was fehlt in der Verordnung am ehesten?",
+  o: ["Eine schnell wirksame Bedarfsmedikation für Durchbruchschmerzen.",
+      "Ein zweites retardiertes Opioid, das zusätzlich nachmittags eingenommen wird.",
+      "Eine geplante Therapiepause, damit sich der Körper nicht dauerhaft an das Opioid gewöhnt.",
+      "Ein Beruhigungsmittel, das vor jeder Mobilisation vorsorglich verabreicht werden soll."],
+  a: [0],
+  e: "Dauerschmerz wird mit einer regelmäßigen Basis behandelt, Schmerzspitzen mit schnell wirksamen, nicht retardierten Präparaten. Ein zweites Retardpräparat wirkt zu langsam, Pausen verstärken den Schmerz, und Beruhigungsmittel lindern keinen Schmerz. Wird die Bedarfsmedikation häufig gebraucht, überprüft die Ärztin die Basisdosis.",
+  m: "Basis nach der Uhr, Schmerzspitzen mit schnell wirksamer Bedarfsgabe.",
+  u: "Dosierungen sind bewusst nicht Teil dieses Quiz. Bitte Leitlinie, Fachinformation und hausinterne Standards verwenden.",
+  s: ["LL"] },
+
+{ c: "schmerz", k: ["leitlinie", "konsens"],
+  q: "Die Tochter von Herrn B. (88, Lungenkrebs, wach und klar, starke Schmerzen) bittet: „Bitte kein Morphin, davon stirbt er schneller.“ Was ist die fachlich passende Reaktion?",
+  o: ["Ihre Sorge ernst nehmen und erklären, dass bei angepasster Dosis keine Lebensverkürzung belegt ist.",
+      "Ihr recht geben und das Morphin erst in den allerletzten Lebenstagen einsetzen, wenn es nötig wird.",
+      "Erklären, dass Angehörige bei der Medikation grundsätzlich nichts zu sagen haben und das Gespräch beenden.",
+      "Das Morphin ohne weiteres Gespräch absetzen, damit sich die Familie nicht weiter belastet fühlt."],
+  a: [0],
+  e: "Bei sorgfältig an den Schmerz angepasster Dosis gibt es keine belastbaren Hinweise auf eine Lebensverkürzung, unbehandelter Schmerz belastet dagegen deutlich. Maßgeblich ist der Wille von Herrn B. selbst. Die Tochter gehört trotzdem ins Gespräch, denn ihre Angst ist verständlich und lässt sich oft mit Information lindern.",
+  m: "Ängste von Angehörigen ernst nehmen, erklären, den Willen der Betroffenen zählen lassen.",
+  u: "Die Belege stammen vor allem aus Studien mit niedrig dosierten Opioiden bei Atemnot und Tumorschmerz. Für hohe Dosen in der Sterbephase ist die Studienlage begrenzt.",
+  s: ["LL", "COPD"] },
+
+{ c: "schmerz", k: ["leitlinie"],
+  q: "Frau S. (86) bekommt seit drei Tagen ein Opioid gegen Tumorschmerzen. Seit vier Tagen kein Stuhlgang, der Bauch ist gebläht, sie isst kaum. Ein Abführmittel ist nicht verordnet. Was ist angemessen?",
+  o: ["Ärztlich Rücksprache halten, denn bei Opioidbeginn gehört in der Regel ein Abführmittel dazu.",
+      "Mehr Trinken und Trockenpflaumen anbieten, das reicht bei Opioiden in der Regel aus.",
+      "Das Opioid vorerst nicht mehr geben, bis der Darm wieder von selbst in Gang kommt.",
+      "Ein Klistier nach eigenem Ermessen setzen, damit der Stuhlgang möglichst schnell kommt."],
+  a: [0],
+  e: "Opioide hemmen die Darmtätigkeit, und dagegen entwickelt sich kaum Toleranz. Deshalb wird von Beginn an vorbeugend ein Abführmittel verordnet. Das Opioid eigenmächtig auszusetzen lässt die Schmerzen zurückkehren. Maßnahmen ohne Anordnung sind riskant, weil vorher ein Darmverschluss ausgeschlossen werden muss.",
+  m: "Opioid starten heißt Abführmittel mitverordnen.",
+  s: ["LL", "OBST"] },
+
+{ c: "schmerz", k: ["leitlinie", "uneinheitlich"],
+  q: "Herr T. (91, stark eingeschränkte Nierenfunktion) bekommt seit Wochen Morphin. Er wird zunehmend schläfrig und verwirrt und zeigt Muskelzuckungen. Woran sollte man denken?",
+  o: ["An angereicherte Morphin-Abbauprodukte, deshalb sollte die Ärztin Dosis und Wirkstoff überprüfen.",
+      "An eine altersübliche Verwirrtheit, bei der in der Regel keine Maßnahmen nötig sind.",
+      "An Entzugserscheinungen, deshalb sollte die Morphindosis kurzfristig deutlich erhöht werden.",
+      "An eine Nebenwirkung des Abführmittels, das deshalb am besten sofort abgesetzt wird."],
+  a: [0],
+  e: "Bei eingeschränkter Nierenfunktion können sich Abbauprodukte von Morphin anreichern und Sedierung, Delir und Muskelzuckungen verursachen. Die Ärztin prüft dann einen Wechsel auf ein besser geeignetes Opioid. Eine Dosiserhöhung würde das Problem verschlimmern.",
+  m: "Neue Schläfrigkeit, Verwirrtheit und Zuckungen unter Morphin plus Nierenschwäche: ärztlich melden.",
+  u: "Welche Substanz bei welcher Nierenfunktion bevorzugt wird, unterscheidet sich zwischen Quellen. Fachinformation und Apotheke hinzuziehen.",
+  s: ["LL"] },
+
+{ c: "schmerz", k: ["leitlinie"],
+  q: "Welche Aussage zu Nebenwirkungen von Opioiden ist FALSCH?",
+  o: ["Müdigkeit und Übelkeit lassen bei Therapiebeginn oft nach einigen Tagen von selbst nach.",
+      "Die Verstopfung bildet sich bei Dauertherapie nach einigen Wochen meist von selbst zurück.",
+      "Bei langsamer, am Schmerz orientierter Dosisanpassung ist eine Atemdepression selten.",
+      "Vorbeugende Abführmittel werden von Beginn der Therapie an empfohlen."],
+  a: [1],
+  e: "Die Verstopfung ist die Nebenwirkung, gegen die sich kaum Toleranz entwickelt. Sie bleibt bestehen, solange das Opioid gegeben wird, und braucht dauerhaft Vorbeugung. Müdigkeit und Übelkeit sind dagegen oft nur am Anfang ein Problem.",
+  m: "Müdigkeit und Übelkeit gehen oft vorbei, Verstopfung bleibt.",
+  s: ["LL"] },
+
+{ c: "schmerz", k: ["verbindlich", "leitlinie"], sn: "Grundsatz der Einwilligung (§ 630d BGB, Patientenrechtegesetz). Fachliche Hinweise: S3-Leitlinie Palliativmedizin.",
+  q: "Frau W. (82, Darmkrebs, klar orientiert) lehnt Morphin ab: „Das ist Suchtzeug, das bekommen nur Sterbende.“ Sie hat starke Schmerzen. Was ist hilfreich?",
+  o: ["Ihre Befürchtungen erfragen, Gewöhnung und Sucht erklären und gemeinsam Möglichkeiten besprechen.",
+      "Das Morphin zerkleinert unter das Essen mischen, damit sie sich nicht aufregt.",
+      "Auf die ärztliche Anordnung verweisen und die regelmäßige Einnahme freundlich, aber bestimmt einfordern.",
+      "Ihren Wunsch hinnehmen und das Thema Schmerz künftig nicht mehr von sich aus ansprechen."],
+  a: [0],
+  e: "Wer einwilligungsfähig ist, entscheidet selbst. Eine heimliche Gabe verletzt dieses Selbstbestimmungsrecht und ist nicht zulässig. Ein Gespräch über Ängste, den Unterschied zwischen Gewöhnung und Sucht und über Alternativen bringt oft Bewegung. Das Thema Schmerz bleibt dabei im Gespräch, auch wenn sie zunächst bei ihrer Ablehnung bleibt.",
+  m: "Ablehnung ernst nehmen, Ängste erfragen, nie heimlich verabreichen.",
+  s: ["LL"] },
+
+{ c: "schmerz", k: ["leitlinie", "uneinheitlich"],
+  q: "Herr N. hat starke Tumorschmerzen und bisher keine Schmerzmittel. Was gilt nach der Leitlinie zum WHO-Stufenschema?",
+  o: ["Ein direkter Beginn mit niedrig dosiertem Stufe-III-Opioid ist möglich, wenn die Schmerzen es erfordern.",
+      "Jede Stufe muss mindestens eine Woche ausgeschöpft sein, bevor die nächste Stufe folgen darf.",
+      "Stufe II ist bei Krebsschmerz vorgesehen und sollte vor dem Einsatz von Stufe III zunächst ausgeschöpft werden.",
+      "Nichtopioide und Opioide sollten wegen der Wechselwirkungen nicht gemeinsam gegeben werden."],
+  a: [0],
+  e: "Das Stufenschema ist ein Orientierungsrahmen, kein starres Gesetz. Bei mäßigen bis starken Schmerzen kann Stufe II übersprungen werden. Nichtopioide können ergänzend sinnvoll sein.",
+  m: "Stufenschema ist ein Rahmen. Bei starken Schmerzen direkt Stufe III möglich.",
+  u: "Empfehlungsgrad und Alternativen (zum Beispiel Tramadol, Tilidin) unterscheiden sich je nach Leitlinie und Fassung. Bitte den Originaltext prüfen.",
+  s: ["LL"] },
+
+{ c: "schmerz", k: ["konsens"], sn: "Hinweise der Hersteller (Fachinformation Fentanyl-Pflaster). Keine Leitlinienquelle benannt.",
+  q: "Frau R. (85) trägt ein Fentanyl-Pflaster. Sie hat 39 °C Fieber, ist sehr schläfrig und atmet flach. Zum Wärmen liegt ein Heizkissen auf dem Pflaster. Was ist richtig?",
+  o: ["Das Heizkissen entfernen, die Ärztin sofort informieren und die Atmung engmaschig beobachten.",
+      "Das Pflaster abziehen und sofort ein neues an anderer Stelle aufkleben.",
+      "Weiter beobachten, denn Wärme und Fieber haben keinen Einfluss auf die Aufnahme aus dem Pflaster.",
+      "Zusätzlich Bedarfsmedikation geben, damit sie wegen des Fiebers nicht unruhig und schmerzgeplagt wird."],
+  a: [0],
+  e: "Fieber und äußere Wärme können die Aufnahme von Fentanyl aus dem Pflaster erhöhen. Es droht eine Überdosierung mit Schläfrigkeit und Atemdepression. Die Wärmequelle wird entfernt und die Ärztin informiert, die über das weitere Vorgehen entscheidet. Zusätzliche Opioidgaben wären gefährlich.",
+  m: "Fentanyl-Pflaster: Fieber und Wärme erhöhen die Aufnahme.",
+  s: [] },
+
+{ c: "schmerz", k: ["leitlinie", "uneinheitlich"],
+  q: "Herr H. (86) hat ein Magengeschwür in der Vorgeschichte und eine eingeschränkte Nierenfunktion. Gegen Knochenschmerzen wird ein NSAR erwogen. Was trifft zu?",
+  o: ["NSAR können Magen und Niere belasten, deshalb ist eine sorgfältige ärztliche Abwägung nötig.",
+      "NSAR gelten bei älteren Menschen als besonders sicher, Vorerkrankungen spielen kaum eine Rolle.",
+      "NSAR sind bei Tumorschmerz grundsätzlich verboten und werden in der Palliativversorgung nie eingesetzt.",
+      "Mit Magenschutz sind NSAR auch bei deutlich eingeschränkter Nierenfunktion unbedenklich."],
+  a: [0],
+  e: "NSAR können Magen, Niere und Herz-Kreislauf-System belasten, besonders bei älteren Menschen und Vorerkrankungen. Ein Magenschutz schützt die Niere nicht. In bestimmten Situationen können Nichtopioide Opioide ergänzen, der Einsatz wird aber gegen die Risiken abgewogen.",
+  m: "NSAR bei Älteren mit Magen- oder Nierenproblemen nur mit Vorsicht und ärztlicher Abwägung.",
+  u: "Die Leitlinie spricht zu Nichtopioiden nur offene Empfehlungen („kann“) aus. Die Bewertung einzelner Substanzen unterscheidet sich zwischen Ländern.",
+  s: ["LL"] },
+
+{ c: "schmerz", k: ["leitlinie"],
+  q: "Frau P. (77) hat Wirbelsäulenmetastasen und trotz Opioiden Schmerzen bei Bewegung. Was sollte ärztlich zusätzlich geprüft werden?",
+  o: ["Eine Strahlentherapie und gegebenenfalls Bisphosphonate oder Denosumab.",
+      "Konsequente Bettruhe, damit die Wirbelsäule über lange Zeit vollständig entlastet bleibt.",
+      "Der Verzicht auf weitere Schmerztherapie, da Knochenschmerz grundsätzlich nicht behandelbar ist.",
+      "Ein Wechsel auf rein pflanzliche Mittel, weil Opioide bei Knochenschmerz nicht wirken."],
+  a: [0],
+  e: "Bei Knochenmetastasen wirken oft mehrere Bausteine zusammen: Schmerzmittel, lokale Strahlentherapie und knochenstabilisierende Substanzen. Bettruhe verschlechtert Beweglichkeit und Lebensqualität. Neu auftretende Gefühlsstörungen oder Lähmungen sind bei Wirbelsäulenmetastasen ein Alarmzeichen und müssen sofort ärztlich abgeklärt werden.",
+  m: "Knochenschmerz: Schmerzmittel plus Strahlentherapie, bei Lähmungszeichen sofort ärztlich.",
+  s: ["LL"] },
+
+{ c: "schmerz", k: ["leitlinie", "uneinheitlich"],
+  q: "Frau L. (80, Tumor im Becken) hat brennende, einschießende Schmerzen im Bein, die auf ihr Opioid nur teilweise ansprechen. Welche Überlegung ist sinnvoll?",
+  o: ["Ein Antikonvulsivum oder Antidepressivum erwägen, mit Blick auf Sedierung und Sturzrisiko.",
+      "Ein Entzündungshemmer allein behandelt Nervenschmerzen in der Regel zuverlässig und ausreichend.",
+      "Die Opioiddosis ohne ärztliche Prüfung immer weiter steigern, bis die Schmerzen verschwunden sind.",
+      "Nur Wärme und Ablenkung anbieten, weil Nervenschmerz nicht medikamentös behandelbar ist."],
+  a: [0],
+  e: "Nervenschmerz spricht auf Opioide oft nur teilweise an. Antikonvulsiva und bestimmte Antidepressiva können ergänzt werden. Bei älteren Menschen sind Sedierung, Schwindel und Sturzgefahr besonders wichtig. Wärme und Ablenkung können zusätzlich helfen, ersetzen die Medikamente aber nicht.",
+  m: "Nervenschmerz: Koanalgetikum erwägen, Sturzrisiko im Blick behalten.",
+  u: "Die Evidenz speziell bei Tumorschmerz ist begrenzt. Vieles stammt aus Studien zu anderen Nervenschmerzen.",
+  s: ["LL"] },
+
+{ c: "schmerz", k: ["leitlinie", "konsens"],
+  q: "Frau D. (83, geistig klar) sagt: „Es geht schon.“ Beim Aufstehen verzieht sie das Gesicht und hält sich die Hüfte. Wie reagieren Sie?",
+  o: ["Gezielt nachfragen (in Ruhe, bei Bewegung, mit Skala) und die Beobachtung als Ergänzung nutzen.",
+      "Ihre Aussage nicht gelten lassen, die Beobachtung ersetzt bei ihr die Selbstauskunft vollständig.",
+      "„Schmerzfrei“ dokumentieren, denn sie hat selbst gesagt, dass es ihr gut genug geht.",
+      "Die Angehörigen um eine Einschätzung bitten und deren Urteil ohne weitere Prüfung übernehmen."],
+  a: [0],
+  e: "Viele ältere Menschen untertreiben Schmerzen, um nicht zur Last zu fallen. Die Selbstauskunft bleibt der Maßstab, erhält aber durch konkretes Nachfragen mehr Aussagekraft. Beobachtungen ergänzen sie und sind ein guter Anlass nachzufragen.",
+  m: "Selbstauskunft ernst nehmen, konkret nachfragen, Beobachtung ergänzt.",
+  s: ["LL"] },
+
+{ c: "schmerz", k: ["konsens", "leitlinie"],
+  q: "Welche Maßnahmen gehören zu einer guten Schmerzversorgung im Pflegeheim?",
+  o: ["Schmerzen regelmäßig mit derselben Skala erfassen und dokumentieren.",
+      "Nach einer Bedarfsgabe frühestens am nächsten Tag beurteilen, ob sie ausreichend gewirkt hat.",
+      "Vor schmerzhaften Maßnahmen wie einem Verbandwechsel rechtzeitig vorab behandeln.",
+      "Schmerzmittel nur geben, wenn Bewohnerinnen und Bewohner von sich aus ausdrücklich danach fragen."],
+  a: [0, 2],
+  e: "Regelmäßige Erfassung macht Verlauf und Wirkung sichtbar. Vorbeugende Gabe vor bekannten Schmerzspitzen vermeidet unnötiges Leiden. Die Wirkung einer Bedarfsgabe wird nach dem Wirkeintritt geprüft, nicht erst am nächsten Tag. Wer sich nicht äußern kann oder zurückhaltend ist, wird sonst übersehen.",
+  m: "Erfassen, vorbeugen, Wirkung zeitnah prüfen, nicht auf Bitten warten.",
+  s: ["LL"] },
+
+/* ===== WEITERE SYMPTOME ===== */
+{ c: "symptom", k: ["leitlinie"],
+  q: "Ein Patient mit fortgeschrittener Erkrankung hat trotz Behandlung der Ursachen weiter Atemnot. Was gilt als am besten etablierte medikamentöse Therapie?",
+  o: ["Niedrig dosierte Opioide, vorsichtig nach Wirkung angepasst und regelmäßig überprüft.",
+      "Sauerstoff für alle Betroffenen, unabhängig davon, wie hoch der Sauerstoffgehalt im Blut ist.",
+      "Benzodiazepine als erste Wahl, weil Angst die Atemnot verstärkt und so verschlimmert.",
+      "Verzicht auf Opioide, weil sie die Atmung dämpfen und das Sterben beschleunigen können."],
+  a: [0],
+  w: ["", "", "Angst und Panik verstärken Atemnot tatsächlich. Benzodiazepine kommen aber eher ergänzend in Betracht, nicht als erste Wahl.", "Das ist ein verbreiteter Mythos. Zu niedrig dosierten Opioiden gegen Atemnot gibt es keine eindeutigen Belege für mehr Todesfälle durch Atemdepression."],
+  e: "Opioide sind die am besten etablierte medikamentöse Therapie der Atemnot. Zu niedrig dosierten Opioiden bei refraktärer Atemnot (Studienlage bei COPD) gibt es keine eindeutigen Belege für eine erhöhte Sterblichkeit durch Atemdepression. Sauerstoff wird nicht pauschal empfohlen.",
+  m: "Atemnot ist mehrdimensional. Erst die Ursache behandeln, dann Opioide, Angst mitbehandeln, Sauerstoff nur gezielt.",
+  n: "Die Leitlinie formuliert die Opioid-Empfehlung mit „sollen“. Sie gilt ausdrücklich für Krebserkrankungen. Die Übertragung auf andere Erkrankungen wie COPD beruht auf anderen Quellen. Dosierungen bitte der aktuellen Leitlinie oder Ihrer SOP entnehmen.",
+  s: ["LL", "COPD"] },
+
+{ c: "symptom", k: ["leitlinie", "uneinheitlich"],
+  q: "Welche nicht-medikamentösen Maßnahmen können bei Atemnot hilfreich sein?",
+  o: ["Aufrechte Oberkörperlagerung, Fenster öffnen oder kühle Luft ins Gesicht (Fächer, Ventilator).",
+      "Den Raum abdunkeln, die Tür schließen und die Bewohnerin zur Ruhe allein lassen.",
+      "Ruhige Anwesenheit, ruhige Ansprache und Anleitung zu langsamer Atmung.",
+      "Flache Rückenlage ohne Kopfteil, damit sich der Brustkorb gut entspannen kann."],
+  a: [0, 2],
+  e: "Atemnot ist auch ein Angstthema. Aufrechte Haltung, frische Luft und eine ruhige Bezugsperson können Atemnot und Panik mildern. Alleinsein und Flachlagerung verschlimmern sie meist.",
+  m: "Aufrecht, Luftzug, ruhige Begleitung.",
+  u: "Die Evidenz für kühle Luft ist begrenzt, das Risiko aber gering. Nicht-medikamentöse Maßnahmen ergänzen die Ursachenbehandlung und Medikamente, sie ersetzen sie nicht.",
+  s: ["LL"] },
+
+{ c: "symptom", k: ["leitlinie", "uneinheitlich"],
+  q: "Herr D. (76, Lungenkrebs) hat Atemnot, seine Sauerstoffsättigung ist normal. Er wünscht Sauerstoff. Was trifft zu?",
+  o: ["Der Nutzen ist ohne Sauerstoffmangel nicht belegt, ein Luftzug im Gesicht wirkt oft ähnlich gut.",
+      "Sauerstoff ist bei jeder Atemnot wirksam und sollte deshalb bedenkenlos verordnet werden.",
+      "Sauerstoff schadet bei Atemnot grundsätzlich und darf deshalb auf keinen Fall eingesetzt oder ausprobiert werden.",
+      "Sauerstoff kommt ausschließlich in der Sterbephase in Betracht, vorher ist er nicht sinnvoll."],
+  a: [0],
+  e: "Bei Atemnot ohne Sauerstoffmangel bringt Sauerstoff nicht mehr als Raumluft. Ein individueller Behandlungsversuch kann im Einzelfall vertretbar sein, wenn er hilft. In der Sterbephase wird Sauerstoff meist nicht mehr empfohlen.",
+  m: "Sauerstoff gezielt bei Hypoxämie, nicht pauschal.",
+  u: "Ein individueller Behandlungsversuch kann im Einzelfall vertretbar sein. Die Studienlage bei Menschen ohne Hypoxämie ist uneinheitlich.",
+  s: ["LL"] },
+
+{ c: "symptom", k: ["leitlinie"],
+  q: "Frau Z. (82) bekommt seit zwei Tagen ein Opioid. Seitdem ist ihr übel, sie erbricht zweimal. Was ist der erste Schritt?",
+  o: ["Mögliche Ursachen klären, etwa das Opioid, Verstopfung oder Hirndruck, und danach gezielt behandeln.",
+      "Sofort ein Standard-Antiemetikum geben, das bei Übelkeit jeder Ursache gleich gut und zuverlässig wirkt.",
+      "Die Bewohnerin nüchtern lassen, bis die Übelkeit abgeklungen und der Magen beruhigt ist.",
+      "Zunächst Ingwertee anbieten, weil er als natürliches Mittel bei Übelkeit grundsätzlich genügt."],
+  a: [0],
+  e: "Übelkeit hat viele Ursachen, und die passende Therapie hängt vom Auslöser ab. Ein Prokinetikum hilft zum Beispiel bei verzögerter Magenentleerung, schadet aber bei Darmverschluss. Die Ärztin wird informiert.",
+  m: "Ursache vor Wirkstoff.",
+  s: ["LL"] },
+
+{ c: "symptom", k: ["konsens"], sn: "Gegenanzeigen: Fachinformation des Wirkstoffs. Kapitel zu Übelkeit/Erbrechen und maligner Darmobstruktion der S3-Leitlinie.",
+  q: "In welcher Situation soll Metoclopramid (Prokinetikum) nicht eingesetzt werden?",
+  o: ["Bei Übelkeit durch einen vollständigen mechanischen Darmverschluss (Ileus).",
+      "Bei Übelkeit durch eine verzögerte Magenentleerung auch lange nach den Mahlzeiten.",
+      "Bei Übelkeit, die nach dem Beginn einer Opioidtherapie neu aufgetreten ist.",
+      "Bei Übelkeit im Zusammenhang mit Völlegefühl und Sodbrennen nach dem Essen."],
+  a: [0],
+  e: "Prokinetika steigern die Darmbewegung. Bei vollständigem Verschluss können sie Koliken verstärken und das Risiko einer Perforation erhöhen.",
+  m: "Kein Prokinetikum bei vollständigem Darmverschluss.",
+  s: ["LL"] },
+
+{ c: "symptom", k: ["leitlinie", "uneinheitlich"],
+  q: "Bei einer nicht operablen malignen Darmobstruktion mit Koliken und Erbrechen: Welche Maßnahme kann helfen?",
+  o: ["Butylscopolamin gegen Koliken und Sekretion, bei Bedarf Octreotid, dazu Antiemetika und Schmerztherapie.",
+      "Stimulierende Abführmittel in hoher Dosis, damit sich die Passage im Darm rasch wieder öffnet und der Stuhl abgeht.",
+      "Ein konsequenter Kostaufbau mit Trinknahrung, um die Kräfte zu erhalten und den Darm zu fordern.",
+      "Prokinetika in hoher Dosis, damit die Darmbewegung angeregt und der Darminhalt weitertransportiert wird."],
+  a: [0],
+  e: "Ziel ist nicht die Wiederherstellung der Passage, sondern Linderung von Schmerz, Koliken und Erbrechen. Eine Ablaufsonde kann im Einzelfall erwogen werden.",
+  m: "Bei Obstruktion: Koliken und Sekretion dämpfen, Erbrechen lindern.",
+  u: "Substanzwahl und Reihenfolge bitte im Leitlinienkapitel nachlesen. Die Evidenz ist begrenzt.",
+  s: ["LL"] },
+
+{ c: "symptom", k: ["leitlinie", "uneinheitlich"],
+  q: "Welche Aussagen zum Delir bei Palliativpatienten treffen zu?",
+  o: ["Ein hypoaktives Delir (still, schläfrig) wird leicht als Müdigkeit übersehen.",
+      "Benzodiazepine sind das Mittel der ersten Wahl, weil sie die Unruhe zuverlässig lösen.",
+      "Auslöser wie Schmerz, Harnverhalt, Verstopfung, Infektion oder Medikamente werden gesucht.",
+      "Viele Besuche und häufige Wechsel im Team helfen, die Orientierung wiederzufinden."],
+  a: [0, 2],
+  e: "Benzodiazepine können ein Delir verstärken und kommen vor allem bei Entzug oder bestimmten Konstellationen infrage. Wichtig sind Prävention, Ursachensuche und eine ruhige, vertraute Umgebung mit wenigen, bekannten Bezugspersonen.",
+  m: "Delir: Ursachen suchen, Umgebung beruhigen, Medikamente gezielt und zurückhaltend.",
+  u: "Haloperidol wird häufig bei belastenden Symptomen eingesetzt. Eine Studie (Agar et al. 2017) fand bei niedrig dosiertem Haloperidol oder Risperidon im Vergleich zu Placebo jedoch keinen Vorteil. Die Delir-Symptome waren in den Antipsychotika-Gruppen tendenziell sogar stärker. Leitlinien und Praxis weichen hier voneinander ab.",
+  s: ["LL", "AGAR"] },
+
+{ c: "symptom", k: ["leitlinie", "konsens"],
+  q: "Frau E. (84) hat nachts große Angst und klingelt immer wieder. Was ist ein sinnvolles Vorgehen?",
+  o: ["Ursachen erfragen, Zeit und Anwesenheit anbieten, Entspannung nutzen, Medikamente nur gezielt und befristet.",
+      "Sofort ein Benzodiazepin als Dauertherapie ansetzen, damit sie nachts zuverlässig durchschlafen kann.",
+      "Die Angst als normalen Teil des Sterbens ansehen und sie mit Hinweis auf die Nachtruhe freundlich vertrösten.",
+      "Das Licht ausschalten, die Tür schließen und die Klingel entfernen, damit sie zur Ruhe kommt."],
+  a: [0],
+  e: "Angst kann Folge von Atemnot, Schmerz oder Sorgen sein oder eine eigene Störung. Nicht-medikamentöse Hilfen stehen am Anfang, Medikamente ergänzen. Bei Medikamenten sind Sturzgefahr, Delir und Atemdepression bei Kombinationen zu bedenken.",
+  m: "Angst: zuhören, Ursache klären, Medikamente gezielt.",
+  s: ["LL"] },
+
+{ c: "symptom", k: ["leitlinie"],
+  q: "Welche Aussage zu Depression in der palliativen Situation stimmt?",
+  o: ["Anhaltend gedrückte Stimmung und Hoffnungslosigkeit werden erfragt, Antidepressiva wirken aber oft erst nach Wochen.",
+      "Traurigkeit gehört zur Situation, deshalb muss eine Depression bei Schwerkranken nicht behandelt werden.",
+      "Eine Depression erkennt man zuverlässig an Tränen, wer nicht weint, ist in der Regel auch nicht depressiv oder verzweifelt.",
+      "Antidepressiva wirken in der Regel nach wenigen Tagen und eignen sich daher gut für kurze Prognosen."],
+  a: [0],
+  e: "Trauer und Depression sind verwandt, aber nicht dasselbe. Bei Verdacht auf Depression gehören psychotherapeutische und medikamentöse Optionen in die Planung, abgestimmt auf die Prognose.",
+  m: "Depression erfragen, behandeln, Wirklatenz der Antidepressiva beachten.",
+  s: ["LL"] },
+
+{ c: "symptom", k: ["leitlinie"],
+  q: "Herr W. (85) sagt zur Pflegekraft: „Ich möchte nicht mehr leben.“ Was ist angemessen?",
+  o: ["Die Aussage ernst nehmen, nach Hintergründen fragen und bei Bedarf direkt nach Suizidgedanken fragen.",
+      "Das Thema behutsam wechseln, um ihn nicht noch weiter zu belasten und das Gespräch insgesamt zu entspannen und zu beruhigen.",
+      "Ihm sofort versichern, dass alles gut wird, und ihn auf die positiven Seiten des Tages hinweisen.",
+      "Ihn zur Sicherheit unverzüglich gegen seinen Willen in eine psychiatrische Klinik einweisen lassen."],
+  a: [0],
+  e: "Ein Todeswunsch kann Ausdruck von Leid, Hoffnungslosigkeit oder dem Wunsch nach Kontrolle sein. Behandelbare Ursachen wie Schmerz, Depression oder Angst werden bearbeitet. Offenes Nachfragen erhöht das Risiko nicht und wirkt oft entlastend. Das Team und die Ärztin werden informiert.",
+  m: "Todeswunsch ernst nehmen, Hintergründe erfragen, Leid behandeln.",
+  h: "Wenn Sie selbst oder jemand in Ihrem Umfeld in einer akuten Krise sind: In Deutschland erreichen Sie rund um die Uhr die Telefonseelsorge unter 0800 111 0 111.",
+  s: ["LL"] },
+
+{ c: "symptom", k: ["leitlinie"],
+  q: "Was gilt für tumorbedingte Fatigue (anhaltende Erschöpfung)?",
+  o: ["Sie ist häufig und vielschichtig, behandelbare Ursachen werden gesucht, angepasste Aktivität kann helfen.",
+      "Sie entspricht normaler Müdigkeit und lässt sich am besten durch konsequente Bettruhe und Schonung behandeln und beheben.",
+      "Sie ist selten und tritt fast ausschließlich während einer laufenden Chemotherapie auf.",
+      "Sie ist nicht behandelbar, deshalb muss sie weder erfasst noch dokumentiert werden."],
+  a: [0],
+  e: "Fatigue ist ein häufig unterschätztes Symptom und wird oft nicht ausreichend behandelt. Mögliche Ursachen sind zum Beispiel Anämie, Schmerz, Depression, Schlafstörung oder Medikamente. Eine strukturierte Erfassung und individuelle Maßnahmen verbessern die Lebensqualität.",
+  m: "Fatigue erfragen, Ursachen suchen, Aktivität dosieren.",
+  s: ["LL", "AERZTEBLATT19"] },
+
+{ c: "symptom", k: ["leitlinie", "konsens"],
+  q: "Herr L. (80, Tumorkachexie) isst kaum noch, seine Frau drängt ihn zum Essen. Was ist zutreffend?",
+  o: ["Essen wird nicht erzwungen, Wunschkost und kleine Portionen stehen im Vordergrund, Steroide wirken nur kurz.",
+      "Es wird mit Nachdruck ernährt, notfalls über eine Sonde, damit das Gewicht möglichst gehalten wird und stabil bleibt.",
+      "Appetitlosigkeit lässt sich bei Schwerkranken in der Regel durch Vitamine zuverlässig beheben.",
+      "Eine künstliche Ernährung über die Vene ist bei Tumorkachexie grundsätzlich der Standard."],
+  a: [0],
+  e: "Bei fortgeschrittener Erkrankung ist Gewichtsverlust oft durch die Erkrankung bedingt, nicht durch zu wenig Essen. Zwang belastet. Angehörige brauchen Erklärung und Alternativen, zum Beispiel gemeinsame Mahlzeiten ohne Druck. Kortikosteroide können kurzzeitig den Appetit steigern, haben aber Nebenwirkungen.",
+  m: "Genuss vor Menge, kein Zwang, Steroide nur kurzzeitig.",
+  u: "Ernährungsfragen werden uneinheitlich gehandhabt. Entscheidend sind Prognose, Wille der Betroffenen und der Verlauf.",
+  s: ["LL"] },
+
+{ c: "symptom", k: ["konsens", "uneinheitlich"], sn: "Zitronen-Glycerin-Stäbchen: Pflegeempfehlungen ohne benannte Einzelstudie.",
+  q: "Welche Maßnahme ist bei Mundtrockenheit am wenigsten geeignet?",
+  o: ["Die dauerhafte Mundpflege mit Zitronen-Glycerin-Stäbchen.",
+      "Häufig kleine Schlucke Flüssigkeit oder Eiswürfel nach Wunsch.",
+      "Ein Mundspray oder ein Speichelersatzmittel in der Mundhöhle.",
+      "Die regelmäßige Befeuchtung der Lippen mit einem Pflegestift."],
+  a: [0],
+  e: "Zitronensäure kann die Mundschleimhaut zusätzlich austrocknen und reizen. Mundpflege gehört zu den wichtigsten Maßnahmen bei Mundtrockenheit, besonders in der Sterbephase.",
+  m: "Mundtrockenheit lindern, nicht reizen. Wünsche der Betroffenen beachten.",
+  u: "Die Bewertung ist in der Pflegepraxis nicht einheitlich, und die Studienlage ist dünn.",
+  s: ["AERZTEZ"] },
+
+{ c: "symptom", k: ["leitlinie", "uneinheitlich"],
+  q: "Was steht bei der Versorgung maligner Wunden im Vordergrund?",
+  o: ["Linderung von Geruch, Schmerz, Sekret und Blutung sowie Würde, mit schonendem Verbandwechsel.",
+      "Die Heilung der Wunde, auch wenn dafür eine aufwendige und belastende Therapie nötig wird.",
+      "Eine gründliche Wundreinigung mit radikalem Entfernen von Belägen bei jedem Verbandwechsel.",
+      "Die Wunde möglichst selten berühren und zunächst unverbunden an der Luft lassen, damit sie trocknen und abheilen kann."],
+  a: [0],
+  e: "Maligne Wunden heilen meist nicht. Ziele sind Symptomkontrolle, Komfort und Schutz vor Beschämung. Der Verbandwechsel wird geplant und möglichst schmerzarm gestaltet, bei Bedarf mit vorheriger Schmerzprophylaxe.",
+  m: "Maligne Wunde: Symptome lindern, Würde wahren.",
+  u: "Mittel gegen Wundgeruch (zum Beispiel topisches Metronidazol) sind nur begrenzt untersucht.",
+  s: ["LL", "AERZTEBLATT19"] },
+
+{ c: "symptom", k: ["konsens"],
+  q: "Frau K. (78, COPD) lebt zu Hause und erlebt wiederholt Atemnotattacken. Was ist am sinnvollsten?",
+  o: ["Ein Notfallplan mit Bedarfsmedikation, klaren Schritten für Angehörige und einer erreichbaren Ansprechperson.",
+      "Nichts im Voraus besprechen, um bei Frau K. und ihrer Familie keine zusätzlichen Ängste zu wecken.",
+      "Bei jeder Attacke vorsorglich den Notarzt rufen, damit sie sofort fachlich versorgt wird und nichts versäumt wird.",
+      "Den Angehörigen erlauben, die Dosis eines Opioids bei Bedarf nach eigenem Gefühl zu erhöhen."],
+  a: [0],
+  e: "Wer vorbereitet ist, erlebt Attacken weniger bedrohlich. Spezialisierte ambulante Teams sind rund um die Uhr erreichbar und können Notfallpläne und Bedarfsmedikation abstimmen. Dosisänderungen gehören in ärztliche Hand.",
+  m: "Vorausschauend planen: Plan, Medikation, Ansprechperson.",
+  s: ["SAPVRL", "LL"] }
+];
+
+var RAW_B = [
+/* ===== PFLEGERISCHE MASSNAHMEN ===== */
+{ c: "pflege", k: ["konsens", "uneinheitlich"], sn: "Konzept nach Andreas Fröhlich (Basale Stimulation). Keine Leitlinie.",
+  q: "Was ist ein Merkmal der Basalen Stimulation in der Pflege Schwerkranker?",
+  o: ["Sie bietet vertraute Wahrnehmungsangebote wie Berührung, Geruch oder Musik und achtet auf die Reaktionen.",
+      "Sie aktiviert mit kräftigen, möglichst abwechslungsreichen Reizen so schnell wie möglich die Wahrnehmung.",
+      "Sie wirkt so zuverlässig auf das Wohlbefinden, dass eine Schmerzmedikation meist entfallen kann.",
+      "Sie ist ausschließlich bei bewusstlosen Menschen anwendbar, bei wachen Personen ist sie unwirksam."],
+  a: [0],
+  e: "Basale Stimulation will Wahrnehmung, Beziehung und Wohlbefinden fördern, auch bei eingeschränkter Kommunikation. Angebote werden an Biografie und Reaktionen angepasst. Zeichen von Überforderung führen zum Abbruch. Sie ersetzt keine Schmerztherapie.",
+  m: "Vertraute, sanfte Angebote. Reaktionen der Person leiten das Vorgehen.",
+  u: "Es gilt als etabliertes Pflegekonzept. Wirksamkeitsnachweise aus Studien sind begrenzt.",
+  s: [] },
+
+{ c: "pflege", k: ["konsens"], sn: "Expertenkonsens zur Komfortorientierung am Lebensende; keine einzelne Leitlinienquelle benannt.",
+  q: "Herr P. (89) liegt im Sterben und atmet mit Rasselgeräuschen. Wie gestalten Sie die Lagerung?",
+  o: ["Nach Wohlbefinden: Seitenlage oder Oberkörper-Hochlagerung, mit Hilfsmitteln und ohne starren Zeitplan.",
+      "Strikt alle zwei Stunden umlagern, damit sich auf keinen Fall ein Druckgeschwür bilden kann.",
+      "Die Lage nicht mehr verändern, weil jede Bewegung für Sterbende grundsätzlich belastend ist.",
+      "Flach auf dem Rücken lagern, weil nur so ein Verschlucken von Sekret zuverlässig verhindert werden kann."],
+  a: [0],
+  e: "In der Sterbephase hat Linderung Vorrang vor Prophylaxe. Eine Seitenlage kann bei Rasselatmung helfen, weil Sekret abfließen kann. Jede Lagerung wird nach Wohlbefinden entschieden, Schmerz und Atmung werden beobachtet.",
+  m: "Komfort vor Routine. Lagerung nach Wohlbefinden.",
+  s: [] },
+
+{ c: "pflege", k: ["konsens", "uneinheitlich"],
+  q: "Frau T. (88, fortgeschrittene Demenz) isst kaum noch. Die Familie fragt nach einer Magensonde. Was empfehlen palliative Fachgesellschaften?",
+  o: ["Geduldige Unterstützung beim Essen nach Wunsch, angepasste Konsistenz, Genuss. Eine Sonde wird nicht empfohlen.",
+      "Eine PEG-Sonde anlegen, um die Lebensdauer zu verlängern und den Ernährungszustand zu sichern.",
+      "Eine dauerhafte Ernährung über die Vene, damit der Flüssigkeits- und Nährstoffbedarf sicher gedeckt bleibt und das Gewicht stabil ist.",
+      "Das Essen anbieten, aber auf Mundpflege verzichten, weil sie den Genuss am Essen stören kann."],
+  a: [0],
+  e: "Bei fortgeschrittener Demenz verbessert eine Sonde weder Lebensdauer noch Komfort nachweislich, kann aber belasten. Handgefüttert und mit Genuss zu essen bleibt die Grundlinie. Mundpflege gehört dazu.",
+  m: "Genuss und Zuwendung statt Sonde bei fortgeschrittener Demenz.",
+  u: "Die Entscheidung bleibt eine Einzelfallentscheidung. Patientenwille und Vorsorgedokumente sind maßgeblich.",
+  s: ["EAPCDEM"] },
+
+{ c: "pflege", k: ["konsens"], sn: "Standard der pflegerischen Praxis; keine einzelne Quelle benannt.",
+  q: "Sie haben Frau M. eine ärztlich verordnete Bedarfsmedikation gegen Atemnot gegeben. Was gehört danach zu Ihrer Aufgabe?",
+  o: ["Nach angemessener Zeit die Wirkung erfragen und dokumentieren und bei Bedarf Rücksprache halten.",
+      "Nur dokumentieren, wenn etwas Auffälliges geschieht, sonst genügt die Eintragung der Gabe selbst.",
+      "Abwarten, bis Frau M. erneut klingelt, weil sie sich bei Beschwerden von selbst melden wird.",
+      "Die Dosis bei geringer Wirkung selbstständig erhöhen, damit die Atemnot schneller nachlässt."],
+  a: [0],
+  e: "Ohne Nachkontrolle bleibt unklar, ob die Maßnahme gewirkt hat. Die Dokumentation ist Grundlage, die Therapie anzupassen. Die Dosis zu ändern ist ärztliche Aufgabe.",
+  m: "Geben, nachfragen, dokumentieren, Rücksprache.",
+  s: [] },
+
+{ c: "pflege", k: ["konsens", "uneinheitlich"], sn: "Keine belastbare Einzelquelle benannt. Die Evidenzlage ist heterogen.",
+  q: "Wie wird der Einsatz von Aromapflege, Wickeln oder Massagen in der Palliativversorgung eingeordnet?",
+  o: ["Sie können Wohlbefinden fördern, die Evidenz ist begrenzt, Wünsche und Gegenanzeigen werden beachtet.",
+      "Sie sind in der Wirkung gut belegt und können in vielen Fällen die Medikamente ersetzen.",
+      "Sie gelten als gefährlich, deshalb sind sie in Einrichtungen der Palliativversorgung nicht erlaubt.",
+      "Sie werden nur in stationären Hospizen angeboten, in Pflegeheimen sind sie nicht vorgesehen."],
+  a: [0],
+  e: "Zuwendung und Wohlbefinden sind wichtige Ziele. Komplementäre Pflege kann dazu beitragen, wenn sie zur Person passt und sicher angewendet wird. Zu bedenken sind zum Beispiel Allergien und Hautprobleme.",
+  m: "Wohlbefinden fördern, Wünsche und Verträglichkeit beachten.",
+  u: "Die Studienlage ist heterogen. Unterschiedliche Quellen bewerten den Nutzen verschieden.",
+  s: [] },
+
+{ c: "pflege", k: ["konsens"], sn: "Gängige Praxis der Palliativversorgung; keine einzelne Quelle benannt.",
+  q: "Herr R. (83) kann nicht mehr schlucken. Wie wird seine Bedarfsmedikation in der Palliativversorgung häufig verabreicht?",
+  o: ["Subkutan, als Einzelgabe oder über eine Kleinnadel mit Dauerinfusion, ohne venösen Zugang.",
+      "Mehrmals täglich intramuskulär, weil Spritzen in den Muskel schnell und zuverlässig wirken.",
+      "Gar nicht mehr, weil Medikamente bei Schluckunfähigkeit nur noch zusätzliche Belastungen bedeuten.",
+      "Über eine neu gelegte Magensonde, damit alle bisherigen Tabletten weiter gegeben werden können."],
+  a: [0],
+  e: "Die subkutane Gabe ist schonend und ohne venösen Zugang möglich. Intramuskuläre Injektionen sind schmerzhaft und werden vermieden. Symptomlindernde Medikamente werden weitergegeben und nur der Weg angepasst.",
+  m: "Kann nicht schlucken: subkutan statt oral oder intramuskulär.",
+  s: [] },
+
+{ c: "pflege", k: ["konsens"],
+  q: "Frau V. (91) liegt im Sterben und ist unruhig. Die Blase ist tastbar gefüllt, sie kann nicht Wasser lassen. Was ist sinnvoll?",
+  o: ["Ärztlich einen Blasenkatheter abklären, denn Harnverhalt kann Unruhe verursachen und ist behandelbar.",
+      "Grundsätzlich einen Katheter legen, damit die Wäsche nicht gewechselt werden muss und Zeit gespart wird.",
+      "Auf einen Katheter verzichten, weil er in der Sterbephase in jedem Fall abzulehnen und nie angezeigt ist.",
+      "Einen Katheter nur bei Fieber erwägen, bei Harnverhalt ohne Fieber ist keine Maßnahme nötig."],
+  a: [0],
+  e: "Ein Harnverhalt gehört zu den möglichen Ursachen für Unruhe. Der Katheter dient dem Komfort und ist eine individuelle Entscheidung. Er wird nicht aus Routine oder Zeitgründen gelegt.",
+  m: "Katheter nach Komfort und Bedarf, nicht aus Routine.",
+  s: ["THIEME_ST"] },
+
+{ c: "pflege", k: ["konsens"],
+  q: "Bei Herrn S. steht ein schmerzhafter Verbandwechsel an. Was ist sinnvoll?",
+  o: ["Rechtzeitig vorab ein Bedarfsanalgetikum geben (Wirkeintritt beachten), ruhig arbeiten, Pausen anbieten.",
+      "Den Verbandwechsel möglichst ohne Vorbereitung und ohne Pausen durchführen, damit er schnell vorbei ist.",
+      "Herrn S. zur Mitarbeit zu überreden versuchen, damit der Verbandwechsel nicht zu lange dauert.",
+      "Den Verbandwechsel ausfallen lassen, bis die Schmerzen von selbst wieder geringer geworden sind."],
+  a: [0],
+  e: "Schmerzprophylaxe vor schmerzhaften Maßnahmen ist ein Grundprinzip. Herr S. soll Kontrolle behalten, zum Beispiel durch Stoppzeichen und Pausen.",
+  m: "Vorher Analgetikum, ruhig arbeiten, Kontrolle geben.",
+  s: ["LL"] },
+
+{ c: "pflege", k: ["konsens"],
+  q: "Warum ist die regelmäßige Inspektion der Mundhöhle wichtig?",
+  o: ["Soor, Entzündungen und Schmerzen sind häufig und beeinträchtigen Essen, Sprechen und Wohlbefinden.",
+      "Sie ist vor allem für Zahnärzte relevant, in der Pflege hat sie nur einen geringen Stellenwert.",
+      "Bei Sterbenden ist sie überflüssig, weil Mundpflege dann nichts mehr zum Wohlbefinden beiträgt.",
+      "Soor im Mund gilt als harmlos und muss deshalb in der Regel auch nicht behandelt werden."],
+  a: [0],
+  e: "Die Mundhöhle ist ein häufiger Ort belastender Symptome (zum Beispiel unter Chemotherapie, bei Steroiden oder Mundtrockenheit), die sich behandeln lassen. Auch bei Sterbenden bleibt Mundpflege wichtig.",
+  m: "Mund täglich ansehen, Soor und Schmerzen behandeln.",
+  s: ["AERZTEZ"] },
+
+/* ===== KOMMUNIKATION UND SPIRITUALITÄT ===== */
+{ c: "komm", k: ["konsens"],
+  q: "Wofür steht das SPIKES-Protokoll?",
+  o: ["Für ein sechsstufiges Modell zum Überbringen schlechter Nachrichten, von Setting bis Strategy/Summary.",
+      "Für ein Medikamentenschema, mit dem ein Delir bei Palliativpatienten stufenweise behandelt wird.",
+      "Für einen Schmerz-Erfassungsbogen, der Intensität und Lokalisation der Beschwerden festhält.",
+      "Für eine Dokumentationsvorlage, mit der Pflegepläne in Einrichtungen einheitlich geführt werden."],
+  a: [0],
+  e: "SPIKES strukturiert das Gespräch: passender Rahmen (Setting), Wahrnehmung der Person erfragen (Perception), Einladung zur Information (Invitation), Wissen vermitteln (Knowledge), Emotionen aufgreifen (Emotions), Plan und Zusammenfassung (Strategy/Summary).",
+  m: "SPIKES: Setting, Perception, Invitation, Knowledge, Emotions, Strategy.",
+  s: ["SPIKES"] },
+
+{ c: "komm", k: ["konsens"],
+  q: "Frau B. weint, nachdem sie von ihrer fortgeschrittenen Erkrankung erfahren hat. Welche Antwort entspricht dem Prinzip, Gefühle zu benennen und zu würdigen (NURSE)?",
+  o: ["„Das ist ein Schock für Sie. Was beschäftigt Sie gerade am meisten?“",
+      "„Bitte versuchen Sie, nicht zu weinen. Es wird bestimmt alles wieder gut werden.“",
+      "„Denken Sie daran, dass andere Menschen in einer noch schwierigeren Lage sind.“",
+      "„Da kann man leider nichts mehr machen, aber wir kümmern uns jetzt um Sie.“"],
+  a: [0],
+  e: "NURSE steht für Naming, Understanding, Respecting, Supporting, Exploring. Gefühle werden benannt, verstanden und gewürdigt, bevor Lösungen angeboten werden.",
+  m: "Gefühl benennen, verstehen, würdigen, unterstützen, nachfragen.",
+  s: ["NURSE"] },
+
+{ c: "komm", k: ["konsens", "verbindlich"],
+  q: "Wie geht man mit dem Informationsbedarf Betroffener um?",
+  o: ["Erst erfragen, was die Person weiß und wissen will, dann in kleinen Einheiten informieren und nachfragen.",
+      "Alle Befunde sofort und vollständig nennen, damit die Betroffenen sich keine falschen Hoffnungen machen.",
+      "Nur die Angehörigen informieren, damit die Betroffenen selbst nicht zusätzlich beunruhigt werden.",
+      "Nachfragen möglichst vermeiden, damit die Betroffenen nicht auf schwierige Themen gebracht werden."],
+  a: [0],
+  e: "Das Vorgehen „erfragen, informieren, erfragen“ passt Information an das Bedürfnis an. Rechtlich besteht ein Anspruch auf verständliche Aufklärung, aber auch das Recht, auf Information zu verzichten.",
+  m: "Erfragen, informieren, Verständnis prüfen.",
+  s: ["SPIKES", "BGB630E"] },
+
+{ c: "komm", k: ["konsens"],
+  q: "Herr C. (74, unheilbar krank) sagt: „Ich hoffe, dass ich noch den Geburtstag meiner Enkelin erlebe.“ Welche Haltung unterstützt seine Hoffnung am besten?",
+  o: ["Hoffnung nicht nehmen, nichts versprechen, nachfragen, was ihm wichtig ist, und diese Ziele unterstützen.",
+      "Ihm versichern, dass er die Hoffnung nie aufgeben darf und es mit Sicherheit gut ausgehen wird.",
+      "Ihm freundlich erklären, dass diese Hoffnung unrealistisch ist, damit er sich auf das Ende vorbereitet.",
+      "Das Thema Hoffnung nicht ansprechen, weil es Betroffene in einer solchen Lage nur zusätzlich belastet."],
+  a: [0],
+  e: "Hoffnung kann sich im Verlauf verändern, zum Beispiel von Heilung zu Schmerzfreiheit oder einem guten Abschied. Beides darf nebeneinander bestehen: hoffen und sich vorbereiten.",
+  m: "Hoffnung ernst nehmen, nichts versprechen, Ziele erfragen.",
+  s: [] },
+
+{ c: "komm", k: ["konsens"],
+  q: "Nach einem schwierigen Gespräch über seine Prognose schweigt Herr F. lange. Was ist angemessen?",
+  o: ["Die Stille aushalten, Anwesenheit zeigen, Zeit lassen und später behutsam nachfragen.",
+      "Rasch ein anderes, unbeschwertes Thema ansprechen, damit die Stimmung nicht noch schwerer wird.",
+      "Das Gespräch sofort beenden und Herrn F. allein lassen, damit er in Ruhe nachdenken kann.",
+      "Mit beruhigenden Sätzen wie „Das wird schon“ wiederholt versuchen, ihn zum Sprechen zu bringen."],
+  a: [0],
+  e: "Stille kann Raum zum Verarbeiten sein. Anwesenheit sagt oft mehr als Worte. Nachfragen bleibt eine Einladung.",
+  m: "Stille aushalten, anwesend bleiben.",
+  s: [] },
+
+{ c: "komm", k: ["konsens", "uneinheitlich"], sn: "Kommunikations- und Validationskonzepte; Studienlage begrenzt.",
+  q: "Frau J. (86, Demenz) sagt unruhig, ihre verstorbene Mutter warte auf sie. Wie reagieren Sie?",
+  o: ["Die Gefühle dahinter wertschätzen, einfache Sätze sprechen und ruhig zugewandt bleiben, ohne zu belehren.",
+      "Sachlich korrigieren und erklären, dass ihre Mutter bereits vor vielen Jahren verstorben ist.",
+      "Sie mit einem Beruhigungsmittel entspannen, damit sie nachts nicht mehr nach der Mutter fragt.",
+      "Nicht antworten und das Thema übergehen, damit sie sich nicht noch weiter in die Idee hineinsteigert."],
+  a: [0],
+  e: "Wiederholtes Korrigieren kann erneut verletzen. Gefühle und Bedürfnisse hinter der Aussage zu erkennen, schafft Sicherheit.",
+  m: "Gefühl ansprechen statt Fakten korrigieren.",
+  u: "Validations- und Orientierungsansätze werden fachlich teils unterschiedlich bewertet. Die Studienlage ist begrenzt.",
+  s: [] },
+
+{ c: "komm", k: ["konsens", "verbindlich"],
+  q: "Eine Patientin spricht kaum Deutsch. Wer sollte beim Aufklärungsgespräch übersetzen?",
+  o: ["Ein professioneller Dolmetschdienst, Angehörige nur ergänzend, wenn Patientin und Team einverstanden sind.",
+      "Das jüngste Kind der Familie, weil es meist am besten Deutsch spricht und das Vertrauen der Mutter hat.",
+      "Eine Pflegekraft mit Grundkenntnissen der Sprache, weil sie die Patientin bereits gut kennt.",
+      "Es wird nicht übersetzt, die Patientin versteht das Wichtige aus Mimik und Gesten der Beteiligten."],
+  a: [0],
+  e: "Aufklärung muss für die Patientin verständlich sein (§ 630e BGB). Ungeeignete Übersetzung kann Fehler verursachen und Kinder oder Angehörige überfordern.",
+  m: "Professionell dolmetschen lassen. Kinder nicht als Übersetzer einsetzen.",
+  s: ["BGB630E"] },
+
+{ c: "komm", k: ["konsens", "leitlinie"],
+  q: "Die Familie von Herrn Y. ist muslimisch geprägt. Wie gehen Sie mit Wünschen am Lebensende um?",
+  o: ["Individuell erfragen, Rituale ermöglichen, eigene Unsicherheit offen sagen und Zuschreibungen vermeiden.",
+      "Aus der Herkunft ableiten, was Familie und Herr Y. brauchen, und das Angebot danach ausrichten.",
+      "Wünsche ablehnen, die vom üblichen Ablauf der Einrichtung abweichen, damit alle gleich behandelt werden.",
+      "Die Wünsche allein der Familie überlassen, ohne Herrn Y. selbst danach zu fragen."],
+  a: [0],
+  e: "Zugehörigkeit zu einer Kultur oder Religion bestimmt nicht, was eine Person möchte. Erfragen ist respektvoller und genauer als Vermuten.",
+  m: "Erfragen statt annehmen.",
+  s: ["LL", "AERZTEBLATT26"] },
+
+{ c: "komm", k: ["leitlinie", "definition"],
+  q: "Frau O. (81) sagt abends zur Pflegekraft, sie hadere mit der Frage, was nach dem Tod kommt. Wie ist das einzuordnen?",
+  o: ["Spirituelle Bedürfnisse gehören zur Palliativversorgung, das Team nimmt sie wahr, bei Bedarf mit Seelsorge.",
+      "Das Thema gehört ausschließlich zur Seelsorge, das Team spricht es von sich aus nicht an.",
+      "Es ist nur bei Menschen mit enger religiöser Bindung relevant, bei Frau O. kann man es daher übergehen und nicht ansprechen.",
+      "Es sollte vermieden werden, weil das Ansprechen die Bewohnerin zusätzlich belasten könnte."],
+  a: [0],
+  w: ["", "Oft äußern Betroffene solche Fragen gegenüber Pflege oder Ärzteschaft. Das Team sollte sie wahrnehmen und ein Angebot machen.", "Spiritualität ist weiter als Religion. Sie umfasst Sinnfragen, Hoffnung, Verbundenheit und Werte.", "Wer das Thema meidet, lässt Betroffene mit der Frage allein. Hilfreicher ist, behutsam nachzufragen und Angebote zu machen."],
+  e: "Die WHO-Definition nennt die spirituelle Dimension neben der körperlichen und psychosozialen. Seelsorge ist ein wichtiger Partner, entbindet das Team aber nicht.",
+  m: "Körperlich, psychosozial, spirituell: alle Dimensionen gehören zum Auftrag des Teams.",
+  n: "Laut Ärzteblatt (31.07.2026) enthält die aktualisierte S3-Leitlinie jetzt Kapitel zur Spiritualität und zur Angehörigenbetreuung und empfiehlt, das Thema in Aus-, Fort- und Weiterbildung aufzugreifen. Den Volltext der neuen Fassung habe ich nicht ausgewertet. Details bitte dort nachlesen.",
+  s: ["AERZTEBLATT26", "LL"] },
+
+{ c: "komm", k: ["konsens", "uneinheitlich"],
+  q: "Was kennzeichnet die Würdezentrierte Therapie (Dignity Therapy)?",
+  o: ["Ein strukturiertes Gespräch zum Lebensrückblick, aus dem ein Dokument für Angehörige entsteht.",
+      "Eine Gruppe von Medikamenten, die bei Angst am Lebensende eingesetzt werden und dessen Folgen mildern.",
+      "Eine Form der Sedierung, bei der Betroffene bis zum Tod in einem ruhigen Schlafzustand begleitet werden.",
+      "Ein rechtliches Verfahren, mit dem der Wille einwilligungsunfähiger Menschen formell festgestellt wird."],
+  a: [0],
+  e: "Die Therapie gibt Betroffenen Raum, Wichtiges zu erzählen und zu hinterlassen. Das schriftliche Ergebnis kann für Angehörige bedeutsam sein.",
+  m: "Lebensrückblick im Gespräch, Dokument für die Nahestehenden.",
+  u: "In einer größeren randomisierten Studie (Chochinov 2011) wurde das Leiden insgesamt nicht signifikant gesenkt. Teilnehmende berichteten aber über Vorteile für das Erleben am Lebensende.",
+  s: ["CHOCH2011"] },
+
+{ c: "komm", k: ["konsens"],
+  q: "Ein Patient fragt: „Wie lange habe ich noch?“ Was ist ein gutes Vorgehen?",
+  o: ["Unsicherheit ehrlich benennen, nach dem Hintergrund fragen, Zeitspannen nennen und später neu einschätzen.",
+      "Eine genaue Zahl nennen, weil Betroffene Klarheit brauchen, um ihre verbleibende Zeit zu planen.",
+      "Ausweichen und die Frage unbeantwortet lassen, damit er sich nicht unnötig mit dem Ende befasst.",
+      "Die Prognose den Angehörigen überlassen, die ihn am besten kennen und seine Reaktion einschätzen können, bevor man selbst etwas sagt."],
+  a: [0],
+  e: "Prognosen sind unsicher. Spannen („eher Wochen bis Monate“) und regelmäßige Neueinschätzung sind ehrlicher als exakte Zahlen. Die Frage kann Angst, Planungsbedarf oder den Wunsch nach Offenheit ausdrücken.",
+  m: "Ehrlich, in Spannen, Hintergrund erfragen.",
+  s: ["THIEME_ST"] },
+
+/* ===== STERBEPHASE UND STERBEBEGLEITUNG ===== */
+{ c: "sterbe", k: ["leitlinie", "konsens"],
+  q: "Herr M. liegt im Sterben, trinkt kaum noch und hat einen trockenen Mund. Die Tochter fragt nach einer Infusion. Was ist nach Fachempfehlungen am sinnvollsten?",
+  o: ["Häufige, sorgfältige Mundpflege. Auf künstliche Flüssigkeit wird meist verzichtet, wenn kein anderer Wille vorliegt.",
+      "Eine Infusion anlegen, damit er nicht verdurstet und die Tochter sich keine Vorwürfe machen muss.",
+      "Auf Mundpflege verzichten, weil Sterbende von der Trockenheit im Mund meist nichts mehr wahrnehmen und sie nicht stört.",
+      "Eine Magensonde legen, um in den letzten Tagen eine ausreichende Ernährung sicherzustellen."],
+  a: [0],
+  w: ["", "Sterbende verspüren meist keinen Durst. Zusätzliche Flüssigkeit kann Sekret, Ödeme und Atemnot verstärken.", "Mundtrockenheit ist in der Sterbephase besonders belastend. Mundpflege gehört zur Symptomkontrolle.", "Künstliche Ernährung in der Sterbephase ist in der Regel nicht angezeigt und belastet zusätzlich."],
+  e: "Parenterale Flüssigkeit in der Sterbephase bringt meist keinen Nutzen und kann belasten. Quälend ist die Mundtrockenheit, und die lässt sich durch Mundpflege lindern.",
+  m: "Sterbende leiden an Mundtrockenheit, nicht an Durst. Mundpflege statt Infusion, immer unter Beachtung des Patientenwillens.",
+  n: "Das ist eine Empfehlung der Fachgesellschaften und der Leitlinie, keine Rechtspflicht. Entscheidend sind der Wille des Patienten und die Einzelsituation. Die ärztliche Basisbetreuung schließt das Stillen von Durst ein, bei Sterbenden gelingt das meist über die Mundpflege.",
+  s: ["THIEME_ST", "AERZTEZ"] },
+
+{ c: "sterbe", k: ["konsens"],
+  q: "Bei der sterbenden Frau N. tritt Rasselatmung auf, die Tochter ist erschrocken. Welche Aussage trifft zu?",
+  o: ["Sekret sammelt sich bei nachlassendem Schlucken. Die Tochter aufklären und prüfen, ob Frau N. belastet wirkt.",
+      "Sie zeigt immer Erstickungsangst an, deshalb ist unverzüglich eine tiefe Sedierung nötig.",
+      "Tiefes Absaugen ist das Mittel der ersten Wahl, damit die Atemwege möglichst vollständig frei werden.",
+      "Zusätzliche Flüssigkeit per Infusion löst das Sekret und lindert das Rasseln zuverlässig."],
+  a: [0],
+  w: ["", "Rasselatmung ist nicht zwingend ein Zeichen von Atemnot oder Leiden. Die meisten Betroffenen sind dabei bewusstseinsgetrübt.", "Absaugen ist belastend und bei Sekret in tieferen Atemwegen wenig wirksam. Zuerst kommen Aufklärung und Lagerung in Betracht, bei belastender Rasselatmung Anticholinergika.", "Es ist umgekehrt. Parenterale Flüssigkeit kann die Sekretbildung steigern und die Rasselatmung verstärken."],
+  e: "Ein entspannter, ruhiger Eindruck spricht dafür, dass die Patientin nicht leidet. Für Angehörige ist das Geräusch oft sehr belastend, deshalb gehört die Aufklärung dazu.",
+  m: "Rasselatmung ist meist für die Angehörigen belastender als für die Sterbenden. Beobachten, aufklären, lagern, bei Bedarf medikamentös behandeln.",
+  n: "Die genannten Maßnahmen entsprechen gängiger Praxis und Fachliteratur. Die Auswahl von Medikamenten und Dosierungen richtet sich nach Leitlinie und hausinterner SOP.",
+  s: ["FLEX", "LL"] },
+
+{ c: "sterbe", k: ["leitlinie"],
+  q: "Wie wird die Sterbephase erkannt, und was gehört zur Vorbereitung?",
+  o: ["Die Sterbephase umfasst die letzten vier Wochen und wird anhand von Laborwerten bestätigt.",
+      "Bedarfsmedikation wird erst verordnet, wenn die Symptome tatsächlich aufgetreten sind.",
+      "Neben klinischen Zeichen zählt die Teameinschätzung, Bedarfsmedikation wird vorausschauend verordnet.",
+      "Die Sterbephase gilt als erreicht, sobald die Patientin in ein Krankenhaus aufgenommen wird."],
+  a: [2],
+  w: ["Als Sterbephase gelten grob die letzten drei bis sieben Lebenstage. Laborwerte sind dafür nicht ausschlaggebend.", "Typische Symptome wie Atemnot, Schmerz, Rasselatmung, Unruhe und Mundtrockenheit werden vorausschauend (antizipatorisch) vorbereitet. Sonst entstehen vermeidbare Wartezeiten, besonders nachts.", "", "Der Aufenthaltsort sagt nichts über die Sterbephase aus."],
+  e: "Die Einschätzung der Behandelnden gilt neben klinischen Zeichen als wichtiges Kriterium. Nicht mehr nötige Medikamente werden überprüft, zum Beispiel können Statine wegfallen.",
+  m: "Sterbephase etwa die letzten 3 bis 7 Tage. Vorausschauend planen, Medikation überprüfen, Bedarfsmedikation bereitstellen.",
+  n: "Das entspricht den Empfehlungen der S3-Leitlinie zur Sterbephase, wie sie in der Fachliteratur zusammengefasst werden. Die Zeitangabe ist ein Anhaltswert, kein Grenzwert.",
+  s: ["THIEME_ST", "LL"] },
+
+{ c: "sterbe", k: ["leitlinie", "konsens"],
+  q: "Welche Veränderungen können auf die Sterbephase hinweisen?",
+  o: ["Zunehmender Rückzug, mehr Schlaf und ein geringerer Wunsch nach Essen und Trinken.",
+      "Deutlich stabilere Vitalzeichen, wachsende körperliche Kraft und ein steigender Appetit.",
+      "Veränderte Atmung mit Pausen oder Rasseln, kühle Extremitäten und marmorierte Haut.",
+      "Zunehmender Durst mit dem Wunsch nach größeren Trinkmengen und häufigem Wasserlassen."],
+  a: [0, 2],
+  e: "Kein einzelnes Zeichen ist sicher. Verlauf und Gesamtbild und die Einschätzung im Team zählen. Auch reversible Ursachen müssen bedacht werden. Zunehmende Schluckunfähigkeit ist ein weiteres Zeichen.",
+  m: "Rückzug, Atem- und Hautveränderung, Schluckverlust: Gesamtbild und Team entscheiden.",
+  u: "Prognosen in der Sterbephase sind unsicher. Fehleinschätzungen kommen vor, sowohl zu früh als auch zu spät.",
+  s: ["THIEME_ST", "LL"] },
+
+{ c: "sterbe", k: ["leitlinie", "konsens"],
+  q: "Ein sterbender Bewohner wird nachts sehr unruhig. Was gehört zuerst zur Abklärung?",
+  o: ["Reversible Ursachen prüfen, etwa Schmerz, Harnverhalt, Verstopfung, Atemnot, Angst oder Medikamente.",
+      "Sofort eine tiefe Sedierung anfordern, damit die Unruhe schnell endet und er zur Ruhe kommt, ohne weitere Abklärung.",
+      "Die Unruhe zunächst beobachten und nicht behandeln, weil sie in der Sterbephase normal ist.",
+      "Zum Schutz vor Stürzen eine Fixierung anbringen, bis die Ärztin am Morgen kommt."],
+  a: [0],
+  e: "Terminale Unruhe hat oft behandelbare Auslöser. Erst wenn diese ausgeschöpft sind und das Leiden bleibt, kommen stärkere Maßnahmen infrage. Fixierung ist keine Lösung und rechtlich nur eingeschränkt zulässig.",
+  m: "Unruhe: erst Ursachen suchen.",
+  s: ["LL", "THIEME_ST"] },
+
+{ c: "sterbe", k: ["konsens"], sn: "Gängige Praxis; Medikation und Details nach hausinterner SOP.",
+  q: "Bei Herrn Q. (Tumor am Hals) besteht das Risiko einer massiven Blutung. Wie bereiten Sie sich vor?",
+  o: ["Angehörige und Team vorab informieren, dunkle Tücher und Notfallmedikation bereithalten und im Ernstfall bleiben.",
+      "Nicht darüber sprechen, um Herrn Q. und die Familie nicht unnötig zu beunruhigen oder zu ängstigen.",
+      "Bei jeder auch kleinen Blutung den Notarzt rufen, damit sofort eine Klinikeinweisung erfolgen kann.",
+      "Im Ernstfall den Raum verlassen und Hilfe holen, damit niemand die Situation miterleben muss."],
+  a: [0],
+  e: "Eine Blutung kann für alle Beteiligten sehr erschreckend sein. Vorbereitung gibt Sicherheit. Dunkle Tücher mindern den optischen Eindruck, Anwesenheit und ruhiges Handeln stehen im Vordergrund.",
+  m: "Vorher besprechen, vorbereiten, im Ernstfall nicht allein lassen.",
+  s: ["LL"] },
+
+{ c: "sterbe", k: ["leitlinie", "konsens"],
+  q: "Wie wird die Dauermedikation in der Sterbephase überprüft?",
+  o: ["Nutzen und Belastung werden abgewogen, Symptomlinderndes bleibt, Entbehrliches wie Statine entfällt.",
+      "Alle Medikamente werden sofort abgesetzt, weil in der Sterbephase kein Medikament mehr sinnvoll sein kann.",
+      "Es wird nichts verändert, damit die Versorgung bis zum Schluss einheitlich und unverändert bleibt.",
+      "Opioide werden nur noch bei Bedarf ohne Basisdosis gegeben, auch wenn die Schmerzen anhalten."],
+  a: [0],
+  e: "Symptomlinderung hat Vorrang. Medikamente ohne Nutzen für das Befinden belasten und können reduziert werden. Wichtige Medikamente dürfen nicht abrupt entfallen, nur weil Schlucken nicht mehr möglich ist, der Weg wird zum Beispiel auf subkutan umgestellt.",
+  m: "Nutzen und Belastung abwägen, Symptomlinderung sichern, Applikationsweg anpassen.",
+  u: "Beim Absetzen einzelner Substanzen (zum Beispiel Antiepileptika oder Kortikosteroide) sind Besonderheiten zu bedenken. Das entscheidet das Team im Einzelfall.",
+  s: ["LL", "THIEME_ST"] },
+
+{ c: "sterbe", k: ["uneinheitlich"], sn: "Keine einzelne Leitlinienquelle. Die Debatte findet in der Fachliteratur statt.",
+  q: "Was ist mit „Freiwilligem Verzicht auf Nahrung und Flüssigkeit“ (FVNF, Sterbefasten) gemeint, und wie wird es eingeordnet?",
+  o: ["Der Entschluss einer einwilligungsfähigen Person, nicht mehr zu essen und zu trinken, ethisch kontrovers.",
+      "Eine Form der Tötung auf Verlangen, die nach § 216 StGB strafbar ist, wenn Pflegende dabei begleiten.",
+      "Die Diagnose einer Schluckstörung, bei der Betroffene Nahrung und Flüssigkeit nicht mehr aufnehmen können, weshalb sie ärztlich begleitet wird.",
+      "Eine ärztlich geleitete Therapie, bei der Betroffene bei Übergewicht vorübergehend auf Nahrung verzichten."],
+  a: [0],
+  e: "Beim Sterbefasten handelt die betroffene Person selbst. Das unterscheidet es von Tötung auf Verlangen. Begleitung bedeutet Symptomkontrolle, Mundpflege und regelmäßige Prüfung, ob der Wille besteht.",
+  m: "FVNF: eigenverantwortlicher Entschluss, gute Begleitung, ethisch kontrovers.",
+  u: "Rechtliche und ethische Bewertungen sind nicht in allen Fachkreisen einheitlich. Im Zweifel Ethikberatung und Rechtsberatung einbeziehen.",
+  s: [] },
+
+{ c: "sterbe", k: ["verbindlich"], sn: "Bestattungsgesetze der Länder (Landesrecht).",
+  q: "Wer darf in Deutschland den Tod feststellen und die Leichenschau durchführen?",
+  o: ["Ärztinnen und Ärzte, Pflegekräfte dürfen den Tod nicht rechtswirksam feststellen.",
+      "Jede examinierte Pflegekraft, wenn die Zeichen des Todes eindeutig und sicher zu erkennen sind.",
+      "Die Angehörigen, sofern sie bei der verstorbenen Person waren und den Tod bestätigen können.",
+      "Die Polizei, die nach jedem Todesfall in einer Einrichtung hinzugezogen werden muss."],
+  a: [0],
+  e: "Die Todesfeststellung und die Leichenschau sind ärztliche Aufgaben. Die Details regeln die Bestattungsgesetze der Länder. Pflegekräfte können Beobachtungen dokumentieren und ärztliche Kolleginnen und Kollegen rufen.",
+  m: "Tod feststellen: ärztliche Aufgabe.",
+  u: "Es handelt sich um Landesrecht. Fristen und Details unterscheiden sich zwischen den Bundesländern.",
+  s: [] },
+
+{ c: "sterbe", k: ["konsens"],
+  q: "Herr D. ist gerade friedlich verstorben, seine Frau steht am Bett. Wie gestalten Sie die Zeit danach?",
+  o: ["Zeit zum Abschiednehmen lassen, Wünsche und Rituale beachten, würdevoll versorgen.",
+      "Zügig alles abräumen und das Zimmer neu vorbereiten, damit die Räumlichkeiten bald wieder frei werden und belegt werden können.",
+      "Das Zimmer abschließen, bis der Bestatter eintrifft, damit niemand ungestört hineingehen kann.",
+      "Die Ehefrau bitten, rasch den Bestatter zu verständigen, damit die Formalitäten erledigt werden."],
+  a: [0],
+  e: "Der Abschied prägt die Trauer. Ein würdiger, ruhiger Rahmen hilft Angehörigen. Er entspricht auch dem Leitbild der Charta.",
+  m: "Zeit, Würde, Rituale.",
+  s: ["CHARTA"] },
+
+{ c: "sterbe", k: ["leitlinie", "konsens", "uneinheitlich"],
+  q: "Welche Voraussetzungen gelten nach Fachempfehlungen für eine palliative Sedierung?",
+  o: ["Ein Symptom, das trotz Alternativen nicht lindert, Teamentscheidung, Einwilligung, Dosis nach Wirkung.",
+      "Der Wunsch der Angehörigen reicht aus, wenn die Sterbephase begonnen hat und sie das Leiden nicht aushalten können.",
+      "Sie ist Standard für alle Sterbenden, damit niemand in der letzten Lebensphase leiden muss.",
+      "Sie ist nur mit einem Opioid in hoher Dosis möglich, andere Substanzen kommen nicht in Betracht."],
+  a: [0],
+  e: "Palliative Sedierung ist eine Ultima Ratio bei Leiden, das anders nicht ausreichend gelindert werden kann (refraktäres Symptom). Ziel ist die Linderung, nicht die Verkürzung des Lebens. Die Entscheidung und regelmäßige Überprüfung werden dokumentiert.",
+  m: "Refraktäres Symptom, Team, Einwilligung, Wirkung steuert die Dosis.",
+  u: "Die Praxis unterscheidet sich: tiefe oder flache, zeitweise oder durchgehende Sedierung, Umgang mit Flüssigkeit. Empfehlungen sind nicht identisch.",
+  s: ["CHERNY", "LL"] },
+
+{ c: "sterbe", k: ["leitlinie"],
+  q: "Warum ist es wichtig, die Sterbephase möglichst früh zu erkennen?",
+  o: ["Damit Ziele und Maßnahmen angepasst und Angehörige vorbereitet werden, nach Ausschluss reversibler Ursachen.",
+      "Damit die Therapie in dieser Phase noch einmal intensiviert werden kann, um die verbleibende Lebenszeit zu verlängern und zu sichern.",
+      "Damit Plätze in der Klinik schneller frei werden und andere Patientinnen aufgenommen werden können.",
+      "Es ist nicht entscheidend, weil sich das Vorgehen in der Sterbephase kaum vom bisherigen unterscheidet."],
+  a: [0],
+  e: "Wer die Sterbephase erkennt, kann Belastendes beenden und Wichtiges ermöglichen. Zugleich gilt, nicht vorschnell zu urteilen, sondern behandelbare Ursachen zu prüfen.",
+  m: "Früh erkennen, Ursachen ausschließen, Ziele anpassen.",
+  s: ["LL", "THIEME_ST"] },
+
+{ c: "sterbe", k: ["uneinheitlich", "leitlinie"],
+  q: "Was zeigte eine placebokontrollierte Studie zur Flüssigkeitszufuhr per Infusion bei Menschen mit weit fortgeschrittener Krebserkrankung (Bruera 2013)?",
+  o: ["Die Hauptsymptome einer Dehydrierung besserten sich gegenüber Placebo nicht eindeutig.",
+      "Die Infusion verbesserte die Symptome der Teilnehmenden gegenüber Placebo deutlich und anhaltend.",
+      "Die Infusion verkürzte das Leben der Teilnehmenden gegenüber der Placebogruppe deutlich.",
+      "Die Studie bewies, dass Flüssigkeit in dieser Situation grundsätzlich nie erwogen werden darf."],
+  a: [0],
+  e: "Die Studie fand keinen eindeutigen Nutzen der Infusion für die untersuchten Symptome. Das heißt nicht, dass Flüssigkeit nie sinnvoll ist, sondern dass die Entscheidung individuell nach Wunsch, Beschwerden und Prognose getroffen wird.",
+  m: "Kein generell belegter Nutzen, Entscheidung individuell.",
+  u: "Die Studienlage ist uneinheitlich. Die Studie betraf nicht ausschließlich Sterbende, und Leitlinien betonen eine Einzelfallentscheidung.",
+  s: ["BRUERA13", "LL"] }
+];
+
+var RAW_C = [
+/* ===== ANGEHÖRIGE UND TRAUER ===== */
+{ c: "angeh", k: ["definition", "leitlinie"],
+  q: "Welche Rolle haben Angehörige in der Palliativversorgung?",
+  o: ["Sie gelten als Teil der Versorgung, ihre Belastung wird erfasst und unterstützt, auch nach dem Tod.",
+      "Sie sind Besucher, deren Anliegen für die Versorgung der Betroffenen zweitrangig bleiben.",
+      "Sie treffen die wesentlichen Entscheidungen, weil Betroffene am Lebensende selten selbst entscheiden können.",
+      "Sie werden aus Entscheidungen herausgehalten, damit die Betroffenen nicht beeinflusst werden und sich frei äußern können."],
+  a: [0],
+  e: "Die WHO-Definition nennt ausdrücklich die Unterstützung der Familie während der Erkrankung und in der Trauer. Die aktualisierte S3-Leitlinie enthält laut Ärzteblatt ein eigenes Kapitel zur Angehörigenbetreuung.",
+  m: "Angehörige gehören zur Einheit der Versorgung, auch über den Tod hinaus.",
+  s: ["WHODEF", "AERZTEBLATT26"] },
+
+{ c: "angeh", k: ["leitlinie", "konsens"],
+  q: "Wie bereiten Sie die Angehörigen von Frau K. (stark abgebaut, Sterbephase absehbar) auf die kommenden Tage vor?",
+  o: ["Frühzeitig und verständlich erklären, was geschehen kann, was getan wird und wer erreichbar ist.",
+      "Gar nicht darauf eingehen, um sie nicht zu ängstigen, und erst bei Verschlechterung informieren.",
+      "Ein schriftliches Merkblatt aushändigen und für Rückfragen auf die Station am nächsten Morgen verweisen.",
+      "Erst nach dem Tod ein ausführliches Gespräch anbieten, wenn Ruhe eingekehrt ist."],
+  a: [0],
+  e: "Gute Information nimmt Angst. Erinnerungen an belastende Sterbebilder, zum Beispiel an Rasselatmung, begleiten Angehörige oft lange. Erklären, Ansprechpersonen und Anwesenheit helfen.",
+  m: "Früh, verständlich, mit klaren Ansprechpersonen informieren.",
+  s: ["LL", "THIEME_ST"] },
+
+{ c: "angeh", k: ["konsens"],
+  q: "Die Tochter von Herrn A. (sterbend) sagt verzweifelt: „Er muss doch wenigstens etwas trinken.“ Wie helfen Sie ihr?",
+  o: ["Verständnis zeigen, erklären, dass Sterbende selten Durst haben, und Mundpflege oder Berührung anbieten.",
+      "Ihr erlauben, ihren Vater behutsam zum Trinken zu drängen, damit sie nichts unversucht lässt.",
+      "Sie bitten, das Zimmer zu verlassen, weil ihre Anspannung den Vater unnötig zusätzlich und stark belastet.",
+      "Von der Ärztin eine Infusion verlangen, damit die Tochter beruhigt ist und sich entlastet fühlt."],
+  a: [0],
+  e: "Essen und Trinken sind für viele Menschen Ausdruck von Fürsorge. Fürsorge lässt sich anders zeigen. Zum Beispiel können Angehörige die Mundpflege übernehmen.",
+  m: "Fürsorge neu zeigen: Mundpflege, Berührung, Anwesenheit.",
+  s: ["AERZTEZ", "THIEME_ST"] },
+
+{ c: "angeh", k: ["definition"], sn: "Fachliche Begriffsbestimmung; keine einzelne Quelle benannt.",
+  q: "Was bedeutet antizipatorische Trauer?",
+  o: ["Trauer, die bereits vor dem Tod entsteht, wenn Abschied und Verlust absehbar sind.",
+      "Trauer, die erst Monate nach dem Tod einsetzt und dann besonders stark und lange anhält.",
+      "Trauer ohne erkennbare Gefühle, bei der Betroffene äußerlich völlig gefasst und unbeteiligt wirken.",
+      "Trauer, die vor allem bei Kindern auftritt und sich häufig in Verhaltensänderungen zeigt."],
+  a: [0],
+  e: "Angehörige und Betroffene trauern oft schon während der Erkrankung, zum Beispiel um verlorene Fähigkeiten und Zukunftspläne. Das ist normal und kein Zeichen von Schwäche.",
+  m: "Antizipatorische Trauer = Trauer im Voraus.",
+  s: [] },
+
+{ c: "angeh", k: ["definition", "uneinheitlich"],
+  q: "Ab wann spricht man laut ICD-11 von einer anhaltenden Trauerstörung (Prolonged Grief Disorder)?",
+  o: ["Wenn schwere Trauer mindestens sechs Monate nach dem Verlust anhält und das Leben deutlich beeinträchtigt.",
+      "Schon nach zwei Wochen, sobald Betroffene sich zurückziehen und kaum noch am Alltag teilnehmen.",
+      "Nach genau einem Jahr, unabhängig davon, wie stark die Trauer das Leben der Betroffenen noch beeinflusst und prägt.",
+      "Dann, wenn beim Gedenken an die verstorbene Person geweint wird und Gefühle zugelassen werden."],
+  a: [0],
+  e: "Trauer ist keine Krankheit. Eine Störung liegt nur vor, wenn die Reaktionen ungewöhnlich stark, anhaltend und beeinträchtigend sind.",
+  m: "ICD-11: mindestens 6 Monate und deutliche Beeinträchtigung.",
+  u: "Die Klassifikationen weichen ab: ICD-11 nennt mindestens sechs Monate, das amerikanische DSM-5-TR bei Erwachsenen mindestens zwölf Monate.",
+  s: ["ICD11"] },
+
+{ c: "angeh", k: ["konsens", "uneinheitlich"],
+  q: "Wie ist das Phasenmodell nach Kübler-Ross (Leugnen, Zorn, Verhandeln, Depression, Zustimmung) einzuordnen?",
+  o: ["Es ist ein einflussreiches Beschreibungsmodell, aber keine feste Abfolge, Reaktionen sind individuell.",
+      "Es beschreibt eine feste Abfolge von Phasen, die jede trauernde oder sterbende Person der Reihe nach durchläuft.",
+      "Es ist durch Studien als Behandlungsplan belegt, nach dem Trauernde Phase für Phase begleitet werden.",
+      "Es betrifft vor allem Angehörige nach einem Todesfall, für Sterbende selbst hat es wenig Bedeutung."],
+  a: [0],
+  e: "Das Modell wurde aus Gesprächen mit Sterbenden entwickelt und ist als Gesprächsanregung wertvoll. Als feste Phasenfolge ist es nicht belegt, und es soll niemanden unter Druck setzen.",
+  m: "Reaktionen sind individuell. Kein Zwang zur „richtigen“ Reihenfolge.",
+  u: "Als empirisches Phasenmodell ist es nicht belegt. Der Wert als Beschreibung wird anerkannt.",
+  s: ["KR"] },
+
+{ c: "angeh", k: ["konsens"],
+  q: "Was beschreibt das Duale Prozessmodell der Trauer (Stroebe und Schut)?",
+  o: ["Pendeln zwischen verlustbezogenem Erleben (Weinen, Erinnern) und wiederherstellungsbezogenem (Alltag, neue Rollen).",
+      "Einen Verlauf der Trauer in zwei festen, aufeinanderfolgenden Phasen, die jeweils mehrere Monate dauern müssen.",
+      "Die Annahme, dass zwei nahe Personen nach einem gemeinsamen Verlust immer in gleicher Weise trauern.",
+      "Eine Sichtweise, nach der Trauer ein rein biologischer Vorgang ohne psychische Anteile ist."],
+  a: [0],
+  e: "Das Modell betont das Pendeln zwischen beiden Orientierungen. Pausen von der Trauer sind Teil einer gesunden Bewältigung.",
+  m: "Pendeln zwischen Verlust und Wiederherstellung.",
+  s: ["STROEBE"] },
+
+{ c: "angeh", k: ["konsens"],
+  q: "Welche Aufgaben der Trauer beschreibt Worden?",
+  o: ["Verlust akzeptieren, Schmerz erfahren, sich an die Welt ohne die Person anpassen, Verbindung neu finden.",
+      "Den Verlust möglichst rasch hinter sich lassen und die Erinnerung an die verstorbene Person ausblenden.",
+      "Erinnerungsstücke entsorgen und den Alltag so schnell wie möglich wieder wie gewohnt aufnehmen.",
+      "Die Gefühle nach außen zurückhalten, damit das Umfeld nicht zusätzlich belastet wird."],
+  a: [0],
+  e: "Worden versteht Trauer als aktive Aufgabe, nicht als Phase, die man passiv durchläuft. Die vier Aufgaben können in unterschiedlicher Reihenfolge bearbeitet werden.",
+  m: "Akzeptieren, fühlen, anpassen, Verbindung neu finden.",
+  s: ["WORDEN"] },
+
+{ c: "angeh", k: ["konsens"], sn: "Gängige Empfehlungen der Kinder- und Jugendtrauerbegleitung; keine einzelne Quelle benannt.",
+  q: "Der Vater der 7-jährigen Lena liegt im Sterben. Wie sprechen Sie mit ihr darüber?",
+  o: ["Ehrlich, altersgerecht und konkret, Fragen zulassen, Beteiligung anbieten und feste Bezugspersonen sichern.",
+      "Es ihr verschweigen, um sie zu schützen, und erst nach dem Tod gemeinsam mit der Familie erklären.",
+      "Mit Umschreibungen wie „Papa ist eingeschlafen“, weil klare Worte für Kinder dieses Alters zu hart sind.",
+      "Erst Kindern ab dem Schulalter die Wahrheit sagen, jüngere verstehen den Tod noch nicht."],
+  a: [0],
+  e: "Kinder spüren Veränderungen. Ehrliche Worte (zum Beispiel „gestorben“) und Einbeziehung verhindern Ängste und Schuldgefühle. Bilder wie „eingeschlafen“ können Schlafangst auslösen.",
+  m: "Ehrlich, altersgerecht, konkret, beteiligen.",
+  s: [] },
+
+{ c: "angeh", k: ["uneinheitlich"],
+  q: "Wem nützt Trauerbegleitung nach den Ergebnissen von Übersichtsarbeiten am ehesten?",
+  o: ["Vor allem Menschen mit hoher Belastung oder Risikofaktoren, bei wenig Belasteten zeigte sich kaum Zusatznutzen.",
+      "Allen Trauernden gleichermaßen, deshalb sollte sie jedem Trauernden ohne Unterschied empfohlen und angeboten werden.",
+      "Praktisch niemandem, weil Trauer eine natürliche Reaktion ist, die sich nicht beeinflussen lässt.",
+      "Vor allem Kindern und Jugendlichen, da Erwachsene Verluste in aller Regel selbst verarbeiten."],
+  a: [0],
+  e: "Die meisten Trauernden bewältigen den Verlust mit Unterstützung ihres Umfelds. Gezielte Angebote für stark Belastete (zum Beispiel nach plötzlichem Verlust oder bei wenig Unterstützung) sind wirksamer als ungezielte Angebote für alle.",
+  m: "Gezielt anbieten: besonders bei hoher Belastung.",
+  u: "Die Ergebnisse variieren mit Studiendesign und Art der Intervention. Unabhängig davon bleibt ein niedrigschwelliges Angebot für alle Angehörigen sinnvoll.",
+  s: ["CURRIER"] },
+
+{ c: "angeh", k: ["verbindlich"],
+  q: "Herr L. möchte seine sterbende Mutter in der letzten Lebensphase begleiten. Welche arbeitsrechtliche Möglichkeit hat er?",
+  o: ["Freistellung zur Begleitung (Pflegezeitgesetz, bis zu drei Monate), ohne Gehaltsanspruch gegen den Arbeitgeber.",
+      "Eine eigene Möglichkeit gibt es nicht, er muss Urlaub nehmen oder sich krankmelden und kann nicht freigestellt werden.",
+      "Zunächst die Kündigung, weil eine befristete Freistellung für die Begleitung gesetzlich nicht vorgesehen ist und der Arbeitgeber zustimmen muss.",
+      "Eine vom Arbeitgeber automatisch bezahlte Freistellung, solange die Begleitung andauert."],
+  a: [0],
+  e: "Das Pflegezeitgesetz erlaubt unter Voraussetzungen eine vollständige oder teilweise Freistellung zur Sterbebegleitung. Vergütung und Absicherung sind eigenständig zu klären.",
+  m: "Freistellung zur Sterbebegleitung ist möglich, meist unbezahlt.",
+  u: "Voraussetzungen (zum Beispiel Betriebsgröße, Ankündigung, Nachweis) und mögliche Leistungen bitte im Gesetz oder bei der Krankenkasse prüfen.",
+  s: ["PFLEGEZG"] },
+
+/* ===== ETHIK ===== */
+{ c: "ethik", k: ["konsens"],
+  q: "Welche vier Prinzipien der Medizinethik nach Beauchamp und Childress werden häufig herangezogen?",
+  o: ["Autonomie, Nichtschaden, Fürsorge, Gerechtigkeit.",
+      "Effizienz, Wirtschaftlichkeit, Schnelligkeit, Dokumentation.",
+      "Autonomie, Heilung, Lebensverlängerung, fachliches Ansehen.",
+      "Gehorsam, Hierarchie, Fürsorge, Tradition."],
+  a: [0],
+  e: "Die vier Prinzipien dienen als Orientierung bei ethischen Konflikten. Sie müssen im Einzelfall gegeneinander abgewogen werden.",
+  m: "Autonomie, Nichtschaden, Fürsorge, Gerechtigkeit.",
+  s: ["BEAUCH"] },
+
+{ c: "ethik", k: ["verbindlich", "konsens"],
+  q: "Was kennzeichnet eine palliative Sedierung?",
+  o: ["Sie lindert gezielt ein anders nicht beherrschbares Leiden, Ziel ist Symptomkontrolle.",
+      "Sie ist eine Form der Tötung auf Verlangen, die nach § 216 StGB ausdrücklich erlaubt ist und gesetzlich geregelt wurde.",
+      "Sedierende Medikamente werden dabei so dosiert, dass der Tod möglichst schnell eintritt.",
+      "Sie gehört zur Routine für jede sterbende Person, sobald die Angehörigen es wünschen."],
+  a: [0],
+  w: ["", "Die Tötung auf Verlangen ist nach § 216 StGB strafbar. Palliative Sedierung ist davon klar abzugrenzen.", "Die Dosis wird nach der Symptomlinderung eingestellt. Eine Lebensverkürzung ist nicht das Ziel.", "Entscheidend sind refraktäre Symptome und der Patientenwille. Der Wunsch der Angehörigen ersetzt das nicht."],
+  e: "Das entspricht dem Selbstverständnis der Palliativmedizin. Voraussetzung sind eine Indikation durch das Team und die Einwilligung des Patienten oder dessen mutmaßlicher Wille.",
+  m: "Palliative Sedierung ist Symptomkontrolle bei refraktärem Leiden und keine Tötung auf Verlangen.",
+  n: "§ 216 StGB ist verbindliches Recht. Die Anforderungen an Indikation und Durchführung palliativer Sedierung stammen aus Empfehlungen der Fachgesellschaften und der Leitlinie und sind nicht gesetzlich geregelt. Die Leitlinie hält fest, dass es nicht zum Grundverständnis der Palliativmedizin gehört, Leben vorzeitig zu beenden.",
+  s: ["STGB216", "LL"] },
+
+{ c: "ethik", k: ["verbindlich"],
+  q: "Was hat der Bundesgerichtshof 2010 (2 StR 454/09) zum Behandlungsabbruch entschieden?",
+  o: ["Ein Abbruch ist gerechtfertigt, wenn er dem Patientenwillen entspricht, auch wenn dafür aktiv etwas getan wird.",
+      "Ein Behandlungsabbruch ist stets strafbar, weil er den Tod der behandelten Person zur Folge haben kann.",
+      "Allein die Ärzte entscheiden über Fortführung oder Abbruch, der Patientenwille spielt dabei keine entscheidende Rolle.",
+      "Ein Abbruch ist nur bei Sterbenden zulässig, bei allen anderen Erkrankungen bleibt er verboten."],
+  a: [0],
+  e: "Das Gericht rückte den Patientenwillen in den Mittelpunkt. Entscheidend ist nicht, ob etwas „getan“ oder „unterlassen“ wird, sondern ob die Behandlung dem Willen der Person entspricht.",
+  m: "Patientenwille entscheidet über Fortführung oder Abbruch.",
+  u: "Die genaue Reichweite und Folgeentwicklung bitte im Urteilstext und in aktueller juristischer Literatur nachlesen.",
+  s: ["BGH"] },
+
+{ c: "ethik", k: ["konsens", "uneinheitlich"],
+  q: "Wie werden die Begriffe „aktive“, „passive“ und „indirekte“ Sterbehilfe heute in der Fachdebatte eingeordnet?",
+  o: ["Sie gelten als missverständlich, gebräuchlicher sind Therapiezieländerung, Behandlungsverzicht und Suizidassistenz.",
+      "Sie sind im Gesetz klar definierte Rechtsbegriffe, an denen sich die Strafbarkeit unmittelbar orientiert.",
+      "Sie sind austauschbar und bezeichnen im Kern dasselbe Handeln in unterschiedlichen Situationen am Lebensende.",
+      "Sie werden von der WHO verbindlich definiert und weltweit einheitlich in der Praxis verwendet."],
+  a: [0],
+  e: "Die alten Begriffe führen oft zu Missverständnissen. Klarer ist die Frage, was getan wird, mit welchem Ziel und ob es dem Willen der Person entspricht.",
+  m: "Nach Ziel, Handlung und Patientenwillen fragen statt nach Schlagworten.",
+  u: "Die Begriffe werden im Alltag und in Medien weiter verwendet. Die Abgrenzung im Einzelfall ist eine juristische und ethische Frage.",
+  s: ["BAEK", "BGH"] },
+
+{ c: "ethik", k: ["verbindlich"],
+  q: "Was entschied das Bundesverfassungsgericht am 26. Februar 2020 zur Suizidassistenz?",
+  o: ["Es erklärte § 217 StGB für nichtig, ein Anspruch auf Hilfe besteht aber nicht.",
+      "Es bestätigte das Verbot der geschäftsmäßigen Förderung der Selbsttötung nach § 217 StGB, weil sie das Leben gefährde.",
+      "Es erlaubte die Tötung auf Verlangen und hob damit die Strafbarkeit nach § 216 StGB auf.",
+      "Es verbot jede Form der Suizidassistenz, auch durch Angehörige und Nahestehende."],
+  a: [0],
+  e: "Das Gericht stellte die Selbstbestimmung am Lebensende in den Vordergrund. Tötung auf Verlangen (§ 216 StGB) bleibt strafbar.",
+  m: "§ 217 StGB nichtig. Recht auf selbstbestimmtes Sterben, aber kein Anspruch auf Hilfe.",
+  u: "Ob und wie der Gesetzgeber seither neu geregelt hat, habe ich nicht geprüft. Den aktuellen Stand bitte gesondert nachsehen.",
+  s: ["BVERFG", "STGB216"] },
+
+{ c: "ethik", k: ["konsens"],
+  q: "Im Team ist man sich uneinig, ob die Therapie bei Herrn G. (unklarer Wille) fortgeführt werden soll. Was ist hilfreich?",
+  o: ["Eine ethische Fallbesprechung, die Werte, Fakten und Optionen strukturiert abwägt (zum Beispiel nach der Nimwegener Methode).",
+      "Die Entscheidung der Stationsleitung überlassen, um das Team nicht mit Diskussionen zu verzögern.",
+      "Abwarten, bis sich die Lage klärt, ohne weitere Besprechung, da Gespräche den Ablauf nur verzögern.",
+      "Die Entscheidung auf den Zeitpunkt der nächsten Verschlechterung verschieben, bis die Lage eindeutig ist und alle zustimmen."],
+  a: [0],
+  e: "Eine strukturierte Besprechung macht Werte, Fakten und Optionen sichtbar und entlastet Einzelne. Sie ist bei Konflikten über Therapieziele, unklarem Patientenwillen oder Uneinigkeit zwischen Team und Angehörigen besonders hilfreich.",
+  m: "Bei Zielkonflikt oder unklarem Willen: strukturiert besprechen.",
+  s: [] },
+
+{ c: "ethik", k: ["verbindlich"],
+  q: "Herr U. (78, klar und einwilligungsfähig) lehnt eine lebensverlängernde Behandlung ab. Was gilt?",
+  o: ["Die Ablehnung ist verbindlich, auch wenn sie zum Tod führt. Das Team berät und bietet Alternativen an.",
+      "Das Team darf die Behandlung gegen seinen Willen durchführen, wenn sie medizinisch sinnvoll ist.",
+      "Die Angehörigen entscheiden an seiner Stelle, weil sie die Folgen besser einschätzen können.",
+      "Die Ablehnung gilt nur dann, wenn sie schriftlich in einer Patientenverfügung festgehalten wurde."],
+  a: [0],
+  e: "Eine Behandlung ohne wirksame Einwilligung ist rechtswidrig. Beraten und Verstehen ist wichtig, ein Überstimmen nicht erlaubt. Die Ablehnung kann auch mündlich erfolgen. Alternativen wie Symptomkontrolle bleiben Teil der Versorgung.",
+  m: "Einwilligungsfähige entscheiden selbst, auch gegen Rat.",
+  s: ["BGH", "BGB1827"] },
+
+{ c: "ethik", k: ["verbindlich", "konsens"],
+  q: "Gibt es einen ethischen oder rechtlichen Unterschied, ob eine Behandlung gar nicht erst begonnen oder später beendet wird?",
+  o: ["Nein, entspricht sie nicht mehr Wille oder Indikation, sind Nicht-Beginnen und Beenden gleichermaßen zulässig.",
+      "Ja, ein Abbruch ist immer verboten, während das Nicht-Beginnen einer Behandlung rechtlich erlaubt bleibt und dort keiner Begründung bedarf.",
+      "Ja, das Nicht-Beginnen einer Behandlung ist verboten, ein späterer Abbruch dagegen unproblematisch.",
+      "Ein Unterschied besteht nur bei künstlicher Beatmung, in allen anderen Fällen gilt Gleichwertigkeit."],
+  a: [0],
+  e: "Die Gleichwertigkeit von Nichtbeginn und Beendigung ist eine zentrale Aussage der Rechtsprechung und der ärztlichen Grundsätze. Im Erleben fühlt sich ein Abbruch oft schwerer an, rechtlich besteht aber kein Unterschied.",
+  m: "Beginnen und Beenden sind gleichwertig zu begründen.",
+  u: "Das Argument ist weithin anerkannt, wird im Alltag aber emotional unterschiedlich erlebt und deshalb oft diskutiert.",
+  s: ["BGH", "BAEK"] },
+
+{ c: "ethik", k: ["konsens"], sn: "Allgemein anerkanntes Prinzip der Einwilligungsfähigkeit; keine einzelne Quelle benannt.",
+  q: "Wie wird Einwilligungsfähigkeit beurteilt?",
+  o: ["Für die konkrete Entscheidung (Verstehen, Bewerten, Willensbildung, Mitteilen), sie kann schwanken.",
+      "Wer eine Demenz hat, gilt grundsätzlich nicht mehr als einwilligungsfähig, unabhängig von der Entscheidung.",
+      "Die Angehörigen entscheiden, ob die betroffene Person noch in der Lage ist, selbst einzuwilligen.",
+      "Sie hängt vom Alter ab, ab einem bestimmten Lebensalter wird sie in der Regel nicht mehr angenommen."],
+  a: [0],
+  e: "Einwilligungsfähigkeit gilt nicht pauschal. Sie wird für die jeweilige Entscheidung und den jeweiligen Zeitpunkt beurteilt. Auch Menschen mit Demenz können für einfache Entscheidungen einwilligungsfähig sein. Erklärungen in einfacher Sprache und ruhige Rahmenbedingungen helfen.",
+  m: "Entscheidungsbezogen, situativ, nicht pauschal.",
+  s: [] },
+
+{ c: "ethik", k: ["definition"],
+  q: "Was sagt die WHO zum weltweiten Zugang zur Palliativversorgung?",
+  o: ["Nur ein kleiner Teil der Menschen mit Bedarf erhält sie, der Zugang zu Opioiden ist oft eingeschränkt.",
+      "Alle Menschen mit Palliativbedarf haben inzwischen weltweit Zugang zu einer ausreichenden Versorgung.",
+      "Palliativversorgung gilt in den meisten Ländern als überversorgt, der Bedarf ist deutlich geringer.",
+      "Opioide sind weltweit gleich gut verfügbar, die Versorgung unterscheidet sich kaum zwischen Ländern."],
+  a: [0],
+  e: "Gerechter Zugang ist ein ethisches Ziel. Das WHO-Faktenblatt beschreibt eine große Versorgungslücke und betont den Zugang zu Schmerzmitteln.",
+  m: "Zugang zu Palliativversorgung und Opioiden ist weltweit ungleich.",
+  u: "Zahlen ändern sich. Aktuelle Angaben im WHO-Faktenblatt nachlesen.",
+  s: ["WHO"] },
+
+{ c: "ethik", k: ["konsens"],
+  q: "Eine Pflegekraft leidet darunter, eine Therapie mitzutragen, die sie ethisch problematisch findet. Was hilft?",
+  o: ["Offene Teamgespräche, ethische Fallbesprechung, Supervision und Klärung der Therapieziele.",
+      "Weitermachen und schweigen, damit der Ablauf im Team nicht gestört wird und der Frieden gewahrt bleibt.",
+      "Sich aus dem Team zurückziehen und Aufgaben an Kolleginnen und Kollegen abgeben, die weniger zweifeln.",
+      "Die Therapie in eigener Verantwortung abändern, soweit es der Pflegekraft ethisch vertretbar erscheint."],
+  a: [0],
+  e: "Moralische Belastung entsteht, wenn Haltung und Handeln auseinanderfallen. Sprechen und strukturierte Besprechung entlasten und verbessern oft die Entscheidung. Eigenmächtige Änderungen sind nicht zulässig.",
+  m: "Ansprechen, besprechen, Supervision nutzen.",
+  s: [] },
+
+{ c: "ethik", k: ["verbindlich"],
+  q: "Die Söhne von Herrn I. bitten, ihm die Diagnose nicht mitzuteilen. Wie ist das einzuordnen?",
+  o: ["Herr I. hat Anspruch auf verständliche Aufklärung, kann aber ausdrücklich verzichten, das Team fragt ihn.",
+      "Das Team folgt dem Wunsch der Söhne, da sie ihren Vater am besten kennen und schützen wollen.",
+      "Aufklärung muss immer sofort und vollständig erfolgen, ganz gleich, was der Patient selbst wünscht.",
+      "Aufklärung ist nur vor Operationen nötig, in der Palliativversorgung gilt sie nicht in diesem Umfang."],
+  a: [0],
+  e: "Informationen gehören dem Patienten. Was er wissen will, entscheidet er. Der Wunsch der Angehörigen kann ein Anlass für ein Gespräch sein, aber kein Ersatz. Angehörige können die Aufklärung nicht ersetzen.",
+  m: "Patient entscheidet, was er wissen will.",
+  s: ["BGB630E"] },
+
+/* ===== RECHT UND VERSORGUNG ===== */
+{ c: "recht", k: ["verbindlich"],
+  q: "Welche Aussage zur Patientenverfügung nach § 1827 BGB trifft zu?",
+  o: ["Sie gilt nur bei einer Erkrankung, die unmittelbar zum Tod führt und bereits weit fortgeschritten ist.",
+      "Sie ist schriftlich abzufassen und kann jederzeit formlos widerrufen werden.",
+      "Sie muss notariell beurkundet werden, damit sie für Ärzte und Betreuer verbindlich ist.",
+      "Sie verliert nach zwei Jahren automatisch ihre Gültigkeit und muss danach erneuert werden."],
+  a: [1],
+  w: ["Die Reichweite ist nicht auf bestimmte Erkrankungen oder Stadien begrenzt (§ 1827 Abs. 3 BGB).", "", "Erforderlich ist die Schriftform. Beratung oder Beglaubigung sind freiwillig.", "Es gibt keine Befristung. Regelmäßiges Überprüfen ist sinnvoll, aber keine Gültigkeitsvoraussetzung."],
+  e: "Betreuer oder Bevollmächtigte prüfen, ob die Festlegungen auf die aktuelle Situation zutreffen. Ist das der Fall, verschaffen sie dem Willen Geltung. Sonst zählen Behandlungswünsche und der mutmaßliche Wille.",
+  m: "Schriftlich verfasst, jederzeit formlos widerrufbar, ohne Befristung, unabhängig von Art und Stadium der Erkrankung.",
+  n: "Das ist geltendes Recht. Die Vorschrift steht seit 1. Januar 2023 in § 1827 BGB und war zuvor § 1901a. Für Einzelfälle sind Ethikberatung oder Rechtsberatung zuständig, dieses Quiz ersetzt sie nicht.",
+  s: ["BGB1827"] },
+
+{ c: "recht", k: ["verbindlich"],
+  q: "Wer hat Anspruch auf spezialisierte ambulante Palliativversorgung (SAPV) nach § 37b SGB V?",
+  o: ["Pflegebedürftige, sobald mindestens Pflegegrad 3 festgestellt ist.",
+      "Vorrangig Menschen mit einer Krebserkrankung, bei anderen Diagnosen besteht kein Anspruch auf diese Leistung.",
+      "Gesetzlich Versicherte mit nicht heilbarer, fortschreitender Erkrankung und aufwändigem Bedarf, wenn die allgemeine Versorgung nicht reicht.",
+      "Menschen, die in einem stationären Hospiz leben und dort dauerhaft betreut werden."],
+  a: [2],
+  w: ["Der Pflegegrad ist kein Kriterium. Maßgeblich sind Erkrankung, Lebenserwartung und Versorgungsaufwand.", "Der Anspruch ist nicht an eine Diagnose gebunden.", "", "SAPV wird vor allem zu Hause oder in Pflegeeinrichtungen erbracht. In stationären Hospizen besteht nur ein Anspruch auf die Teilleistung der ärztlichen Versorgung."],
+  e: "Das sind die Anspruchsvoraussetzungen. SAPV ergänzt die allgemeine ambulante Palliativversorgung, sie ersetzt sie nicht. Bei Kindern und Jugendlichen kann SAPV als Krisenintervention auch bei längerer Lebenserwartung zustehen.",
+  m: "SAPV bei besonders aufwändigem Bedarf und wenn die allgemeine Palliativversorgung nicht ausreicht. Die Verordnung erfolgt ärztlich.",
+  n: "Das ist verbindliches Recht (§ 37b SGB V) mit der SAPV-Richtlinie des Gemeinsamen Bundesausschusses. Vertragsärztinnen und Vertragsärzte verordnen SAPV auf dem Formular Muster 63. Krankenhausärzte können sie für höchstens sieben Tage verordnen.",
+  s: ["KBV", "SAPVRL"] },
+
+{ c: "recht", k: ["verbindlich"],
+  q: "Wodurch unterscheiden sich Patientenverfügung, Vorsorgevollmacht und Betreuungsverfügung?",
+  o: ["Die drei sind im Kern dasselbe Dokument und regeln, wer für eine Person entscheidet.",
+      "Die Patientenverfügung bevollmächtigt eine Person, die Vorsorgevollmacht regelt die Beisetzung und die Bestattungsform.",
+      "Die Patientenverfügung legt Behandlungswünsche fest, die Vollmacht bestimmt, wer entscheidet, die Betreuungsverfügung nennt Wünsche zum Betreuer.",
+      "Eine Betreuungsverfügung ersetzt jede Vollmacht und macht eine Patientenverfügung entbehrlich."],
+  a: [2],
+  e: "Die drei Instrumente ergänzen sich. Eine Vollmacht sichert, dass jemand den Willen durchsetzen kann. Die Patientenverfügung gibt Inhalt vor.",
+  m: "Verfügung = Inhalt. Vollmacht = Person. Betreuungsverfügung = Wunsch für den Betreuer.",
+  u: "Formvorschriften und Reichweite der Vollmacht (zum Beispiel für schwere Eingriffe) bitte im Gesetz oder bei Beratungsstellen prüfen.",
+  s: ["BGB1827"] },
+
+{ c: "recht", k: ["verbindlich"],
+  q: "Frau X. (Ehefrau von Herrn X.) fragt, ob sie ihren Mann nach seinem plötzlichen Schlaganfall vertreten darf. Was gilt seit 2023?",
+  o: ["Ehegatten können sich bei Einwilligungsunfähigkeit befristet (bis zu sechs Monate) vertreten, unter Voraussetzungen.",
+      "Das Notvertretungsrecht gilt unbegrenzt und ersetzt damit auf Dauer jede Vorsorgevollmacht.",
+      "Das Notvertretungsrecht gilt für alle nahen Angehörigen, also auch für Kinder und Geschwister.",
+      "Das Notvertretungsrecht gilt vor allem bei Auslandsaufenthalten, im Inland ist meist ein Betreuer zu bestellen."],
+  a: [0],
+  e: "Das Notvertretungsrecht überbrückt Akutsituationen. Es ersetzt keine Vorsorgevollmacht, und es gilt nur für Ehegatten.",
+  m: "Notvertretung: nur Ehegatten, befristet, an Voraussetzungen gebunden.",
+  u: "Die Voraussetzungen (unter anderem ärztliche Bestätigung, kein Getrenntleben, keine entgegenstehende Vollmacht) bitte im Gesetz nachlesen.",
+  s: ["BGB1358"] },
+
+{ c: "recht", k: ["verbindlich"],
+  q: "Was regelt § 1828 BGB („Gespräch zur Feststellung des Patientenwillens“)?",
+  o: ["Die Ärztin prüft die Indikation und bespricht die Maßnahme mit Betreuer oder Bevollmächtigtem, Nahestehende werden gehört.",
+      "Angehörige entscheiden anstelle der Patientin, sobald diese nicht mehr selbst entscheiden kann.",
+      "Ein Gericht muss in der Regel jede einzelne Behandlungsmaßnahme bei Einwilligungsunfähigen genehmigen.",
+      "Das Gespräch führen vor allem Pflegekräfte, die den Willen ermitteln und an die Ärztin weitergeben, ohne dass sie dabei sind."],
+  a: [0],
+  e: "Das Gespräch strukturiert die Entscheidungsfindung, wenn jemand nicht mehr selbst entscheiden kann. Nahestehende Personen sollen Gelegenheit zur Äußerung bekommen, wenn das ohne erhebliche Verzögerung möglich ist. Es dient dazu, den Willen der Person zu ermitteln, nicht den Willen der Beteiligten durchzusetzen.",
+  m: "Indikation prüfen, mit Betreuer oder Bevollmächtigtem erörtern, Nahestehende hören.",
+  s: ["BGB1828"] },
+
+{ c: "recht", k: ["verbindlich"],
+  q: "Wer trägt die Kosten eines stationären Hospizaufenthalts?",
+  o: ["Die Betroffenen tragen sie vollständig selbst, die Krankenkassen beteiligen sich nicht daran, auch nicht anteilig.",
+      "Die Krankenkassen zahlen nur etwa 20 %, den Rest tragen Betroffene und Familie selbst.",
+      "Die Kassen tragen den Großteil (95 % der zuschussfähigen Kosten), Betroffene zahlen keinen Eigenanteil.",
+      "Das Sozialamt trägt die gesamten Kosten, unabhängig von Einkommen und Vermögen."],
+  a: [2],
+  e: "Der Eigenanteil der Gäste entfällt, damit Menschen nicht aus finanziellen Gründen auf einen Hospizplatz verzichten müssen. Der Rest wird vom Hospiz getragen, unter anderem durch Spenden.",
+  m: "Hospiz: Kassenzuschuss, kein Eigenanteil für Gäste.",
+  u: "Der Prozentsatz ergibt sich aus dem Gesetz und kann sich ändern. Bitte aktuelle Fassung von § 39a SGB V prüfen.",
+  s: ["SGB39A", "GKVHOSP"] },
+
+{ c: "recht", k: ["verbindlich"],
+  q: "Wer darf SAPV verordnen?",
+  o: ["Palliativmedizinerinnen und Palliativmediziner mit der entsprechenden Zusatzbezeichnung.",
+      "Vertragsärztinnen und -ärzte, Krankenhausärzte bei Entlassung bis zu sieben Tage, die Kasse genehmigt.",
+      "Allein die Krankenkasse, die nach eigener Prüfung den Bedarf feststellt und die Leistung bewilligt.",
+      "Pflegedienste, die den Bedarf feststellen und ihn selbstständig bei der Kasse anmelden."],
+  a: [1],
+  e: "Die Verordnung beschreibt Diagnose, Symptome und den Bedarf. Die Krankenkasse prüft und genehmigt. Jeder Vertragsarzt kann verordnen.",
+  m: "Jeder Vertragsarzt kann verordnen. Die Kasse genehmigt.",
+  s: ["KBV", "SVK"] },
+
+{ c: "recht", k: ["verbindlich"],
+  q: "Welche Besonderheit gilt für die Verordnung von Opioiden wie Morphin oder Fentanyl?",
+  o: ["Sie sind Betäubungsmittel, werden auf amtlichem BtM-Rezept verordnet, ihr Verbleib wird dokumentiert.",
+      "Sie benötigen kein besonderes Rezept, ein normales Rezept genügt wie bei anderen Schmerzmitteln auch.",
+      "Sie können jederzeit telefonisch verordnet werden, die Apotheke gibt sie dann an die Pflegekraft.",
+      "Apotheken geben sie bei starken Schmerzen auch ohne Rezept ab, wenn Betroffene darum bitten."],
+  a: [0],
+  e: "Opioide sind Betäubungsmittel. Verschreibung, Abgabe und Dokumentation sind streng geregelt.",
+  m: "Opioid = Betäubungsmittel = BtM-Rezept und Dokumentation.",
+  u: "Die Einführung eines elektronischen BtM-Rezepts ist in Umsetzung. Den aktuellen Stand bitte gesondert prüfen.",
+  s: ["BTMVV"] },
+
+{ c: "recht", k: ["verbindlich"],
+  q: "Auf welche Leistung haben gesetzlich Versicherte nach dem Hospiz- und Palliativgesetz (2015) Anspruch?",
+  o: ["Auf bezahlte Dauerpflege zu Hause, die von der Krankenkasse ohne zeitliche Begrenzung finanziert wird.",
+      "Auf individuelle Beratung und Hilfestellung durch die Krankenkasse zu Hospiz- und Palliativleistungen.",
+      "Auf kostenlose Medikamente aller Art, auch wenn sie nicht im Zusammenhang mit der Erkrankung stehen.",
+      "Auf einen Hospizplatz innerhalb von 24 Stunden nach der Antragstellung bei der Krankenkasse."],
+  a: [1],
+  e: "Versicherte können sich von ihrer Krankenkasse zu Hospiz- und Palliativangeboten beraten lassen und bei der Auswahl unterstützen lassen.",
+  m: "Anspruch auf Beratung durch die Krankenkasse.",
+  s: ["SGB39B"] },
+
+{ c: "recht", k: ["verbindlich"],
+  q: "Was bietet die „gesundheitliche Versorgungsplanung für die letzte Lebensphase“ (§ 132g SGB V)?",
+  o: ["Ein freiwilliges Gesprächsangebot in bestimmten Einrichtungen, um Behandlung und Notfälle vorausschauend zu planen.",
+      "Eine Pflicht für alle Bewohnerinnen und Bewohner, nach dem Einzug eine Patientenverfügung zu verfassen und abzugeben.",
+      "Eine Vermittlung freier Hospizplätze für Bewohner, deren Gesundheitszustand sich rasch verschlechtert.",
+      "Eine Prüfung des Pflegegrades, die bei verändertem Pflegebedarf von der Pflegekasse eingeleitet wird."],
+  a: [0],
+  e: "Das Angebot unterstützt vorausschauende Planung und Dokumentation von Wünschen. Niemand ist verpflichtet, eine Patientenverfügung zu verfassen (§ 1827 Abs. 5 BGB).",
+  m: "Freiwillige Beratung zur Vorausplanung in Einrichtungen.",
+  s: ["SGB132G", "BGB1827"] },
+
+{ c: "recht", k: ["konsens", "uneinheitlich"], sn: "Regionale Konzepte, keine bundeseinheitliche Rechtsgrundlage benannt.",
+  q: "Wozu dienen ärztliche Notfallanordnungen (zum Beispiel Notfallbogen, Notfallplan) in der Palliativversorgung?",
+  o: ["Sie halten ärztlich fest, wie in Krisen gehandelt werden soll, abgestimmt mit dem Patientenwillen.",
+      "Sie ersetzen die Patientenverfügung, sodass diese im Notfall nicht mehr gesucht werden muss.",
+      "Sie sind vor allem im Krankenhaus gültig, in Pflegeeinrichtungen haben sie keine Bedeutung.",
+      "Sie verpflichten den Rettungsdienst in jedem Fall zur Einhaltung, unabhängig von der Lage vor Ort und vom Zustand."],
+  a: [0],
+  e: "Notfallanordnungen übersetzen Behandlungswünsche in konkrete ärztliche Anweisungen, damit im Notfall schnell passend gehandelt wird. Sie helfen Rettungsdienst und Team.",
+  m: "Vorausplanen für die Krise, ärztlich unterschrieben, abgestimmt mit dem Willen.",
+  u: "Formate und Verbindlichkeit unterscheiden sich regional. Rettungsdienste prüfen die Situation im Einzelfall.",
+  s: [] },
+
+{ c: "recht", k: ["verbindlich"],
+  q: "Der Sohn von Frau Z. ruft an und möchte wissen, welche Diagnose seine Mutter hat. Dürfen Sie ihm Auskunft geben?",
+  o: ["Nur mit Einwilligung der Bewohnerin. Bei fehlender Einwilligungsfähigkeit zählt der mutmaßliche Wille.",
+      "Ja, Angehörige haben meist Anspruch auf Auskunft über Diagnose und Prognose ihrer Mutter.",
+      "Nein, auch nicht mit Zustimmung der Bewohnerin oder bei einer bestehenden Vollmacht.",
+      "Bei Krebserkrankungen, bei allen anderen Erkrankungen gilt die Auskunftspflicht gegenüber Angehörigen."],
+  a: [0],
+  e: "Die ärztliche Schweigepflicht schützt auch gegenüber Angehörigen. Bevollmächtigte und Betreuer haben im Rahmen ihrer Aufgabe Auskunftsrechte. Ein Gespräch über die Weitergabe von Informationen sollte frühzeitig geführt und dokumentiert werden.",
+  m: "Auskunft an Angehörige nur mit Einwilligung oder mutmaßlichem Willen.",
+  s: ["STGB203"] }
+];
+
+var RAW = RAW_A.concat(RAW_B, RAW_C);
+
+</script>
+<script>
+(function () {
+  "use strict";
+
+  var KINDS = {
+    verbindlich: { label: "Verbindlich", short: "Gesetz, Rechtsprechung oder Richtlinie. Einzuhalten.", text: "Gesetz, Rechtsprechung oder Richtlinie, die einzuhalten ist." },
+    leitlinie: { label: "Leitlinie", short: "Empfehlung einer Leitlinie. Entscheidungshilfe, keine Rechtspflicht.", text: "Evidenz- und konsensbasierte Empfehlung (S3). Entscheidungshilfe, keine Rechtspflicht. Abweichungen im Einzelfall müssen begründbar sein." },
+    definition: { label: "Definition", short: "Fachliches Selbstverständnis, keine Rechtsnorm.", text: "Fachliches Selbstverständnis, zum Beispiel von WHO oder DGP. Keine Rechtsnorm." },
+    konsens: { label: "Fachkonsens", short: "Gängige Praxis und Expertenmeinung ohne eigene Rechtswirkung.", text: "Gängige Praxis und Expertenmeinung ohne eigene Rechtswirkung. Hausinterne Standards (SOPs) können abweichen." },
+    uneinheitlich: { label: "Uneinheitlich", short: "Quellen oder Praxis weichen ab, die Antwort gilt unter Vorbehalt.", text: "Evidenz schwach oder Quellen weichen voneinander ab. Die Antwort gilt unter Vorbehalt, der Hinweis erklärt, warum." }
+  };
+
+  var CATS = {
+    grund: "Grundlagen und Haltung",
+    schmerz: "Schmerztherapie",
+    symptom: "Weitere Symptome",
+    pflege: "Pflegerische Maßnahmen",
+    komm: "Kommunikation und Spiritualität",
+    sterbe: "Sterbephase und Sterbebegleitung",
+    angeh: "Angehörige und Trauer",
+    ethik: "Ethik",
+    recht: "Recht und Versorgung"
+  };
+  var CAT_ORDER = ["grund", "schmerz", "symptom", "pflege", "komm", "sterbe", "angeh", "ethik", "recht"];
+
+  var POOL = RAW.map(function (q, i) {
+    var c = {};
+    for (var k in q) c[k] = q[k];
+    c.id = "f" + (i < 9 ? "00" : i < 99 ? "0" : "") + (i + 1);
+    c.k = q.k.slice();
+    if (c.u && c.k.indexOf("uneinheitlich") === -1) c.k.push("uneinheitlich");
+    return c;
+  });
+
+  var app = document.getElementById("app");
+  var STORE_KEY = "pq_gesehen_v2";
+  var cfg = { n: 20, mode: "all", topics: {} };
+  CAT_ORDER.forEach(function (k) { cfg.topics[k] = true; });
+  var run = null;
+
+  var ICON_OK = '<svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><circle cx="13" cy="13" r="12" fill="currentColor"/><path d="M7.5 13.5l4 4 7-8" fill="none" stroke="var(--surface)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  var ICON_BAD = '<svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><circle cx="13" cy="13" r="12" fill="currentColor"/><path d="M8.5 8.5l9 9M17.5 8.5l-9 9" fill="none" stroke="var(--surface)" stroke-width="2.4" stroke-linecap="round"/></svg>';
+  var ICON_PART = '<svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><circle cx="13" cy="13" r="12" fill="currentColor"/><path d="M7.5 13h11" fill="none" stroke="var(--surface)" stroke-width="2.6" stroke-linecap="round"/></svg>';
+
+  function esc(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+  function chip(kind) { return '<span class="chip chip-' + kind + '">' + KINDS[kind].label + '</span>'; }
+  function multiBadge(q) { return q.multi ? '<span class="multibadge">Mehrere Antworten richtig</span>' : ""; }
+  function letter(i) { return String.fromCharCode(65 + i); }
+  function shuffle(a) {
+    a = a.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+  function plural(n, one, many) { return n + " " + (n === 1 ? one : many); }
+
+  /* Verlauf (welche Fragen wurden schon gesehen). Browser-Speicher kann fehlen, dann zählt nur die laufende Sitzung. */
+  var seen = {};
+  (function loadSeen() {
+    try {
+      var raw = window.localStorage.getItem(STORE_KEY);
+      if (raw) { var arr = JSON.parse(raw); if (Array.isArray(arr)) arr.forEach(function (id) { seen[id] = true; }); }
+    } catch (e) { /* kein Speicher verfügbar */ }
+  })();
+  function saveSeen() {
+    try { window.localStorage.setItem(STORE_KEY, JSON.stringify(Object.keys(seen))); } catch (e) { /* ignorieren */ }
+  }
+  /* Falsch beantwortete Fragen werden in späteren Runden bevorzugt wieder eingestreut, bis sie einmal richtig beantwortet wurden. */
+  var MISS_KEY = "pq_falsch_v1";
+  var missed = {};
+  (function loadMissed() {
+    try {
+      var raw = window.localStorage.getItem(MISS_KEY);
+      if (raw) { var arr = JSON.parse(raw); if (Array.isArray(arr)) arr.forEach(function (id) { missed[id] = true; }); }
+    } catch (e) { /* kein Speicher verfügbar */ }
+  })();
+  function saveMissed() {
+    try { window.localStorage.setItem(MISS_KEY, JSON.stringify(Object.keys(missed))); } catch (e) { /* ignorieren */ }
+  }
+  function validIds() { var m = {}; POOL.forEach(function (q) { m[q.id] = true; }); return m; }
+  (function cleanSeen() { var v = validIds(); Object.keys(seen).forEach(function (id) { if (!v[id]) delete seen[id]; }); Object.keys(missed).forEach(function (id) { if (!v[id]) delete missed[id]; }); })();
+
+  function selectedPool() {
+    if (cfg.mode === "all") return POOL.slice();
+    return POOL.filter(function (q) { return cfg.topics[q.c]; });
+  }
+  function pickQuestions(list, n) {
+    var miss = shuffle(list.filter(function (q) { return missed[q.id]; })).slice(0, Math.ceil(n * 0.4));
+    var taken = {};
+    miss.forEach(function (q) { taken[q.id] = true; });
+    var rest = list.filter(function (q) { return !taken[q.id]; });
+    var unseen = shuffle(rest.filter(function (q) { return !seen[q.id]; }));
+    var old = shuffle(rest.filter(function (q) { return seen[q.id]; }));
+    return shuffle(miss.concat(unseen, old).slice(0, n));
+  }
+
+  function prepare(list) {
+    return list.map(function (q) {
+      var opts = q.o.map(function (t, i) {
+        return { t: t, ok: q.a.indexOf(i) !== -1, w: q.w && q.w[i] ? q.w[i] : "" };
+      });
+      var c = {};
+      for (var k in q) c[k] = q[k];
+      c.opts = shuffle(opts);
+      c.multi = q.a.length > 1;
+      return c;
+    });
+  }
+
+  function startRun(list, label) {
+    run = { label: label, qs: prepare(list), i: 0, answers: [], sel: [] };
+    renderQuestion();
+    window.scrollTo(0, 0);
+  }
+
+  /* ---------- Startseite ---------- */
+  function renderStart() {
+    var legend = Object.keys(KINDS).map(function (k) {
+      return '<li>' + chip(k) + '<span>' + KINDS[k].text + '</span></li>';
+    }).join("");
+    var counts = {};
+    CAT_ORDER.forEach(function (k) { counts[k] = POOL.filter(function (q) { return q.c === k; }).length; });
+    var nChoices = [10, 20, 30].map(function (n) {
+      return '<label><input type="radio" name="n" value="' + n + '"' + (cfg.n === n ? " checked" : "") + '><span>' + n + ' Fragen</span></label>';
+    }).join("");
+    var topics = CAT_ORDER.map(function (k) {
+      return '<label class="topic"><input type="checkbox" data-t="' + k + '"' + (cfg.topics[k] ? " checked" : "") + '><span>' + CATS[k] + '</span><span class="cnt">' + counts[k] + '</span></label>';
+    }).join("");
+
+    app.innerHTML =
+      '<header class="hero">' +
+        '<h1>Palliativ-Quiz</h1>' +
+        '<p class="lead">Ein Fragenpool mit ' + POOL.length + ' Fragen aus neun Themengebieten. Sie wählen Umfang und Themen, die Fragen werden zufällig gezogen. Nach jeder Antwort erfahren Sie, warum sie stimmt oder nicht, wie verbindlich die Aussage ist und wo die Fachlage unsicher ist.</p>' +
+        '<div class="facts"><span><b>' + POOL.length + '</b> Fragen</span><span><b>9</b> Themen</span><span><b>1</b> Punkt je vollständig richtiger Antwort</span></div>' +
+      '</header>' +
+      '<section class="panel" aria-labelledby="cfgh">' +
+        '<h2 id="cfgh">Test zusammenstellen</h2>' +
+        '<fieldset><legend>Anzahl der Fragen</legend><div class="seg" id="nseg">' + nChoices + '</div></fieldset>' +
+        '<fieldset><legend>Testart</legend><div class="seg" id="mseg">' +
+          '<label><input type="radio" name="mode" value="all"' + (cfg.mode === "all" ? " checked" : "") + '><span>Vollständiger Test<small>alle Themen</small></span></label>' +
+          '<label><input type="radio" name="mode" value="topics"' + (cfg.mode === "topics" ? " checked" : "") + '><span>Nach Themen<small>Auswahl treffen</small></span></label>' +
+        '</div></fieldset>' +
+        '<fieldset id="topicset"' + (cfg.mode === "all" ? " hidden" : "") + '><legend>Themengebiete</legend>' +
+          '<div class="topicbar"><button type="button" class="linkbtn" id="allT">Alle auswählen</button><button type="button" class="linkbtn" id="noneT">Keine auswählen</button></div>' +
+          '<div class="topics" id="topics">' + topics + '</div>' +
+        '</fieldset>' +
+        '<div class="info" id="info" aria-live="polite"></div>' +
+        '<div class="actions"><button class="btn btn-primary" id="go" type="button">Test starten</button><button class="btn btn-ghost" id="reset" type="button">Verlauf zurücksetzen</button></div>' +
+      '</section>' +
+      '<section class="panel" aria-labelledby="lg">' +
+        '<h2 id="lg">Wie verbindlich ist eine Aussage?</h2>' +
+        '<p class="small muted">Jede Frage trägt eine Kennzeichnung. So können Sie Recht, Leitlinienempfehlung und Praxiswissen auseinanderhalten. Weicht die Fachlage ab oder ist die Evidenz schwach, steht „Uneinheitlich“ dabei und ein Hinweis erklärt den Grund.</p>' +
+        '<ul class="legend">' + legend + '</ul>' +
+      '</section>' +
+      '<p class="foot">Lernhilfe für die Weiterbildung, keine Behandlungsanweisung und keine Rechtsberatung. Das Quiz nennt bewusst keine Dosierungen. Recherchestand: 22.10.2026. Die Inhalte stützen sich auf die S3-Leitlinie in der Fassung 2.2 (2020), auf Gesetzestexte, Urteile und Fachartikel. Die 2026 aktualisierte Fassung der Leitlinie habe ich nicht im Volltext geprüft. Quellen, die ich nicht verlinken konnte, sind als Literaturangabe ohne Link genannt. Wo keine belastbare Einzelquelle benannt ist, steht das ausdrücklich dabei. Empfehlungsgrade und Details bitte in den Originalen und in Ihren hausinternen Standards nachlesen.</p>';
+
+    function updateInfo() {
+      var list = selectedPool();
+      var total = list.length;
+      var unseenN = list.filter(function (q) { return !seen[q.id]; }).length;
+      var n = Math.min(cfg.n, total);
+      var go = document.getElementById("go");
+      var info = document.getElementById("info");
+      var scope = cfg.mode === "all" ? "alle Themen" : plural(CAT_ORDER.filter(function (k) { return cfg.topics[k]; }).length, "Thema", "Themen");
+      if (total === 0) {
+        info.innerHTML = '<span>Bitte wählen Sie mindestens ein Thema aus.</span>';
+        go.disabled = true;
+        go.textContent = "Test starten";
+        return;
+      }
+      go.disabled = false;
+      go.textContent = "Test starten (" + n + " Fragen)";
+      info.innerHTML =
+        '<span>Verfügbar: <b>' + total + '</b> Fragen (' + scope + '). Davon noch nicht gesehen: <b>' + unseenN + '</b>.</span>' +
+        '<span class="small muted">Ungesehene Fragen werden bevorzugt. Innerhalb einer Runde kommt keine Frage doppelt vor.' +
+        (cfg.n > total ? ' Für diese Auswahl gibt es nur ' + total + ' Fragen, deshalb wird die Runde kürzer.' : '') + '</span>';
+    }
+
+    Array.prototype.forEach.call(app.querySelectorAll('input[name="n"]'), function (r) {
+      r.addEventListener("change", function () { cfg.n = parseInt(r.value, 10); updateInfo(); });
+    });
+    Array.prototype.forEach.call(app.querySelectorAll('input[name="mode"]'), function (r) {
+      r.addEventListener("change", function () {
+        cfg.mode = r.value;
+        document.getElementById("topicset").hidden = cfg.mode === "all";
+        updateInfo();
+      });
+    });
+    Array.prototype.forEach.call(app.querySelectorAll('input[data-t]'), function (c) {
+      c.addEventListener("change", function () { cfg.topics[c.getAttribute("data-t")] = c.checked; updateInfo(); });
+    });
+    document.getElementById("allT").addEventListener("click", function () {
+      CAT_ORDER.forEach(function (k) { cfg.topics[k] = true; });
+      Array.prototype.forEach.call(app.querySelectorAll('input[data-t]'), function (c) { c.checked = true; });
+      updateInfo();
+    });
+    document.getElementById("noneT").addEventListener("click", function () {
+      CAT_ORDER.forEach(function (k) { cfg.topics[k] = false; });
+      Array.prototype.forEach.call(app.querySelectorAll('input[data-t]'), function (c) { c.checked = false; });
+      updateInfo();
+    });
+    document.getElementById("reset").addEventListener("click", function () {
+      seen = {}; saveSeen(); missed = {}; saveMissed(); updateInfo();
+    });
+    document.getElementById("go").addEventListener("click", function () {
+      var list = selectedPool();
+      if (!list.length) return;
+      var chosen = pickQuestions(list, Math.min(cfg.n, list.length));
+      var label = cfg.mode === "all" ? "Vollständiger Test" : "Test nach Themen";
+      startRun(chosen, label);
+    });
+    updateInfo();
+  }
+
+  /* ---------- Frage ---------- */
+  function renderTopbar() {
+    var n = run.qs.length;
+    var score = run.answers.filter(function (a) { return a && a.correct; }).length;
+    var ticks = "";
+    for (var i = 0; i < n; i++) {
+      var cls = "tick";
+      if (run.answers[i]) cls += run.answers[i].correct ? " ok" : " bad";
+      else if (i === run.i) cls += " cur";
+      ticks += '<span class="' + cls + '"></span>';
+    }
+    return '<div class="topbar">' +
+      '<div class="topline"><span class="eyebrow">Frage ' + (run.i + 1) + ' von ' + n + '</span>' +
+      '<span class="score" aria-live="polite">Punktestand <b>' + score + '</b> von ' + n + '</span></div>' +
+      '<div class="ticks" aria-hidden="true">' + ticks + '</div></div>';
+  }
+
+  function srcHtml(q) {
+    var items = (q.s || []).map(function (key) {
+      var s = SRC[key];
+      if (!s) return "";
+      return s.u
+        ? '<li><a href="' + esc(s.u) + '" target="_blank" rel="noopener noreferrer">' + esc(s.t) + '</a></li>'
+        : '<li>' + esc(s.t) + ' <span class="muted">(Literaturangabe ohne Link)</span></li>';
+    }).join("");
+    var note = q.sn ? '<p>' + esc(q.sn) + '</p>' : "";
+    if (!items && !note) note = '<p>Keine Einzelquelle angegeben. Die Aussage beruht auf allgemeinem Fachkonsens und sollte bei Bedarf in Lehrbuch oder Standard nachgelesen werden.</p>';
+    return '<div class="srcs"><span>Quellen und Nachweise:</span>' + (items ? '<ul>' + items + '</ul>' : "") + note + '</div>';
+  }
+
+  function einordHtml(q) {
+    if (q.n) return '<div class="einord"><div class="row"><span class="eyebrow">Einordnung</span>' + q.k.map(chip).join("") + '</div><p>' + esc(q.n) + '</p></div>';
+    return '<div class="einord"><div class="row"><span class="eyebrow">Einordnung</span>' + q.k.map(chip).join("") + '</div><ul>' +
+      q.k.map(function (k) { return '<li><b>' + KINDS[k].label + ':</b> ' + KINDS[k].short + '</li>'; }).join("") + '</ul></div>';
+  }
+
+  function evalAnswer(q, picked) {
+    var correctIdx = [];
+    q.opts.forEach(function (o, i) { if (o.ok) correctIdx.push(i); });
+    var hits = picked.filter(function (i) { return q.opts[i].ok; }).length;
+    var wrongPicked = picked.length - hits;
+    var exact = wrongPicked === 0 && hits === correctIdx.length;
+    return { correct: exact, hits: hits, wrongPicked: wrongPicked, total: correctIdx.length };
+  }
+
+  function renderQuestion() {
+    var q = run.qs[run.i];
+    var ans = run.answers[run.i];
+    var sel = run.sel;
+    var optsHtml = q.opts.map(function (o, idx) {
+      var cls = "opt";
+      var tag = "";
+      if (ans) {
+        var chosen = ans.picked.indexOf(idx) !== -1;
+        if (o.ok) { cls += " right"; tag = chosen ? "✓ Richtig, von Ihnen gewählt" : "✓ Richtig, nicht gewählt"; }
+        else if (chosen) { cls += " wrong"; tag = "✗ Falsch, von Ihnen gewählt"; }
+        else cls += " dim";
+      } else if (sel.indexOf(idx) !== -1) cls += " sel";
+      var aria = q.multi && !ans ? ' aria-pressed="' + (sel.indexOf(idx) !== -1) + '"' : "";
+      return '<button type="button" class="' + cls + '" data-i="' + idx + '"' + aria + (ans ? " disabled" : "") + '>' +
+        '<span class="ltr" aria-hidden="true">' + letter(idx) + '</span><span class="txt">' + esc(o.t) + (tag ? '<span class="tag">' + tag + '</span>' : "") + '</span></button>';
+    }).join("");
+
+    var fb = "";
+    if (ans) {
+      var last = run.i === run.qs.length - 1;
+      var verdictCls = ans.correct ? "ok" : (ans.hits > 0 && q.multi ? "part" : "bad");
+      var verdictTxt = ans.correct ? "Richtig" : (verdictCls === "part" ? "Teilweise richtig" : "Nicht ganz");
+      var icon = ans.correct ? ICON_OK : (verdictCls === "part" ? ICON_PART : ICON_BAD);
+      var detail = "";
+      if (q.multi && !ans.correct) {
+        detail = '<p>Sie haben ' + ans.hits + ' von ' + ans.total + ' richtigen Antworten gewählt' + (ans.wrongPicked ? ' und ' + plural(ans.wrongPicked, "falsche", "falsche") + ' dazu' : '') + '. Für einen Punkt müssen genau die richtigen Antworten gewählt sein.</p>';
+      }
+      var perOpt = "";
+      if (!ans.correct && !q.multi) {
+        var wo = q.opts[ans.picked[0]];
+        if (wo && wo.w) perOpt = '<p><span class="lbl">Warum Ihre Antwort nicht stimmt:</span> ' + esc(wo.w) + '</p>';
+      }
+      fb = '<div class="fb" id="fb" tabindex="-1">' +
+        '<div class="verdict ' + verdictCls + '">' + icon + verdictTxt + '</div>' +
+        '<div class="why">' + detail + perOpt + '<p><span class="lbl">Erklärung:</span> ' + esc(q.e) + '</p></div>' +
+        (q.m ? '<div class="merk"><b>Merksatz</b>' + esc(q.m) + '</div>' : "") +
+        (q.u ? '<div class="warnbox" role="note"><b>Unsicher oder uneinheitlich</b>' + esc(q.u) + '</div>' : "") +
+        (q.h ? '<div class="notebox" role="note"><b>Hinweis</b>' + esc(q.h) + '</div>' : "") +
+        einordHtml(q) +
+        srcHtml(q) +
+        '<div class="actions"><button type="button" class="btn btn-primary" id="next">' + (last ? "Ergebnis anzeigen" : "Nächste Frage") + '</button></div>' +
+      '</div>';
+    }
+
+    var hint = q.multi
+      ? '<b>Hier sind mehrere Antworten richtig.</b> Wählen Sie alle zutreffenden Antworten aus und tippen Sie dann auf „Antwort prüfen“.'
+      : 'Wählen Sie eine Antwort.';
+    var check = (q.multi && !ans)
+      ? '<div class="actions"><button type="button" class="btn btn-primary" id="check"' + (sel.length ? "" : " disabled") + '>Antwort prüfen</button></div>'
+      : "";
+
+    app.innerHTML = renderTopbar() +
+      '<section class="qcard' + (q.multi ? " multi" : "") + '" aria-labelledby="qt">' +
+        '<div class="qmeta">' + multiBadge(q) + q.k.map(chip).join("") + '<span class="small muted">' + CATS[q.c] + '</span></div>' +
+        '<h2 class="qtext" id="qt">' + esc(q.q) + '</h2>' +
+        (ans ? "" : '<p class="hint' + (q.multi ? " multihint" : "") + '">' + hint + '</p>') +
+        '<div class="opts" role="group" aria-labelledby="qt">' + optsHtml + '</div>' +
+        check +
+        fb +
+      '</section>';
+
+    if (!ans) {
+      Array.prototype.forEach.call(app.querySelectorAll(".opt"), function (b) {
+        b.addEventListener("click", function () {
+          var idx = parseInt(b.getAttribute("data-i"), 10);
+          if (q.multi) {
+            var p = run.sel.indexOf(idx);
+            if (p === -1) run.sel.push(idx); else run.sel.splice(p, 1);
+            b.classList.toggle("sel", run.sel.indexOf(idx) !== -1);
+            b.setAttribute("aria-pressed", String(run.sel.indexOf(idx) !== -1));
+            var ck = document.getElementById("check");
+            if (ck) ck.disabled = run.sel.length === 0;
+          } else {
+            submit([idx]);
+          }
+        });
+      });
+      var ck = document.getElementById("check");
+      if (ck) ck.addEventListener("click", function () { if (run.sel.length) submit(run.sel.slice()); });
+    } else {
+      document.getElementById("next").addEventListener("click", function () {
+        run.sel = [];
+        if (run.i < run.qs.length - 1) { run.i++; renderQuestion(); window.scrollTo(0, 0); }
+        else { renderResult(); window.scrollTo(0, 0); }
+      });
+    }
+  }
+
+  function submit(picked) {
+    var q = run.qs[run.i];
+    var ev = evalAnswer(q, picked);
+    run.answers[run.i] = { qid: q.id, picked: picked.slice().sort(function (a, b) { return a - b; }), correct: ev.correct, hits: ev.hits, wrongPicked: ev.wrongPicked, total: ev.total };
+    seen[q.id] = true;
+    saveSeen();
+    if (ev.correct) { delete missed[q.id]; } else { missed[q.id] = true; }
+    saveMissed();
+    renderQuestion();
+    var fb = document.getElementById("fb");
+    if (fb) {
+      var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      try { fb.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" }); } catch (e) { fb.scrollIntoView(); }
+      try { fb.focus({ preventScroll: true }); } catch (e2) { /* ignorieren */ }
+    }
+  }
+
+  /* ---------- Ergebnis ---------- */
+  function tier(pct) {
+    if (pct >= 90) return "Sehr sicher. Prüfen Sie bei Gelegenheit noch die Einordnung der Aussagen, besonders bei Recht und Leitlinie.";
+    if (pct >= 70) return "Solide Basis mit einzelnen Lücken. Die Hinweise unten zeigen, wo sich das Nachlesen lohnt.";
+    if (pct >= 50) return "Mehrere Lücken. Gehen Sie die Merksätze durch und wiederholen Sie die falsch beantworteten Fragen.";
+    return "Viele Themen sind noch neu. Das ist in der Weiterbildung normal. Wiederholen Sie die falsch beantworteten Fragen und lesen Sie die verlinkten Quellen.";
+  }
+
+  function answerText(q, idxs) {
+    return idxs.map(function (i) { return q.opts[i].t; }).join(" / ");
+  }
+  function correctIdxs(q) {
+    var r = [];
+    q.opts.forEach(function (o, i) { if (o.ok) r.push(i); });
+    return r;
+  }
+
+  function renderResult() {
+    var n = run.qs.length;
+    var score = run.answers.filter(function (a) { return a.correct; }).length;
+    var wrongN = n - score;
+    var pct = Math.round(score / n * 100);
+
+    var byCat = {};
+    run.qs.forEach(function (q, i) {
+      var c = byCat[q.c] || (byCat[q.c] = { ok: 0, total: 0 });
+      c.total++;
+      if (run.answers[i].correct) c.ok++;
+    });
+    var catHtml = CAT_ORDER.filter(function (k) { return byCat[k]; }).map(function (k) {
+      var c = byCat[k];
+      var ratio = c.ok / c.total;
+      var cls = ratio === 1 ? "full" : (ratio >= 0.6 ? "mid" : "part");
+      var label = ratio === 1 ? "Sicher" : (ratio >= 0.6 ? "Teilweise sicher" : "Lücke");
+      var w = Math.round(ratio * 100);
+      return '<div class="cat"><div class="hd"><span class="nm">' + CATS[k] + '</span>' +
+        '<span class="ct"><span class="state ' + cls + '">' + label + '</span> &nbsp;' + c.ok + ' von ' + c.total + '</span></div>' +
+        '<div class="bar" role="img" aria-label="' + c.ok + ' von ' + c.total + ' richtig"><i class="' + cls + '" style="width:' + (w === 0 ? 3 : w) + '%"></i></div></div>';
+    }).join("");
+
+    var missed = run.qs.filter(function (q, i) { return !run.answers[i].correct; });
+    var gapHtml;
+    if (!missed.length) {
+      gapHtml = '<p>In diesem Durchgang gab es keine falsche Antwort. Lesen Sie trotzdem die Einordnungen: Gerade bei Recht und Leitlinie kommt es auf die Verbindlichkeit an. Starten Sie eine neue Runde, um weitere Fragen aus dem Pool zu sehen.</p>';
+    } else {
+      gapHtml = CAT_ORDER.filter(function (k) { return missed.some(function (q) { return q.c === k; }); }).map(function (k) {
+        var items = missed.filter(function (q) { return q.c === k; }).map(function (q) {
+          var i = run.qs.indexOf(q);
+          var a = run.answers[i];
+          var youTxt = a.picked.length ? answerText(q, a.picked) : "Keine Antwort";
+          return '<article class="gap">' +
+            '<div class="qmeta">' + multiBadge(q) + q.k.map(chip).join("") + '</div>' +
+            '<h4>' + esc(q.q) + '</h4>' +
+            '<div class="pair"><div class="you"><b>Ihre Antwort</b>' + esc(youTxt) + '</div><div class="corr"><b>Richtig</b>' + esc(answerText(q, correctIdxs(q))) + '</div></div>' +
+            (q.m ? '<div class="merk"><b>Merksatz</b>' + esc(q.m) + '</div>' : "") +
+            (q.u ? '<div class="warnbox" role="note"><b>Unsicher oder uneinheitlich</b>' + esc(q.u) + '</div>' : "") +
+            srcHtml(q) +
+          '</article>';
+        }).join("");
+        return '<div class="gapgroup"><h3>' + CATS[k] + '</h3>' + items + '</div>';
+      }).join("");
+    }
+
+    var review = run.qs.map(function (q, i) {
+      var a = run.answers[i];
+      return '<div class="rvitem"><span class="mk ' + (a.correct ? "ok" : "bad") + '" aria-label="' + (a.correct ? "richtig" : "falsch") + '">' + (a.correct ? "✓" : "✗") + '</span>' +
+        '<div><div class="qq">' + (i + 1) + '. ' + esc(q.q) + '</div>' + (q.multi ? '<div style="margin:4px 0">' + multiBadge(q) + '</div>' : '') +
+        '<div class="aa">Ihre Antwort: ' + esc(a.picked.length ? answerText(q, a.picked) : "keine") + '</div>' +
+        (a.correct ? "" : '<div class="aa">Richtig: ' + esc(answerText(q, correctIdxs(q))) + '</div>') + '</div></div>';
+    }).join("");
+
+    app.innerHTML =
+      '<header class="hero">' +
+        '<div class="eyebrow">Ergebnis · ' + esc(run.label) + '</div>' +
+        '<div class="big"><span class="n">' + score + '</span><span class="of">von ' + n + ' richtig</span><span class="pct">' + pct + ' %</span></div>' +
+        '<div class="counts"><span class="pill ok">' + score + ' richtig</span><span class="pill bad">' + wrongN + ' falsch</span><span class="pill neutral">' + n + ' Fragen</span></div>' +
+        '<p class="lead">' + tier(pct) + '</p>' +
+      '</header>' +
+      '<div class="actions">' +
+        (missed.length ? '<button type="button" class="btn btn-primary" id="retry">Falsch beantwortete Fragen wiederholen (' + missed.length + ')</button>' : '') +
+        '<button type="button" class="btn ' + (missed.length ? "btn-ghost" : "btn-primary") + '" id="again">Neue Runde, gleiche Einstellungen</button>' +
+        '<button type="button" class="btn btn-ghost" id="home">Zurück zum Start</button>' +
+      '</div>' +
+      '<section class="panel" aria-labelledby="cs"><h2 id="cs">Ergebnis nach Themen</h2><div class="cats">' + catHtml + '</div></section>' +
+      '<section class="panel" aria-labelledby="gp"><h2 id="gp">Ihre Wissenslücken</h2>' + gapHtml + '</section>' +
+      '<details class="review"><summary>Alle Antworten im Überblick (' + n + ')</summary><div class="rv">' + review + '</div></details>' +
+      '<p class="foot">Lernhilfe, keine Behandlungsanweisung und keine Rechtsberatung. Maßgeblich sind die aktuelle Leitlinie, die geltenden Gesetze und die Standards Ihrer Einrichtung.</p>';
+
+    var retry = document.getElementById("retry");
+    if (retry) retry.addEventListener("click", function () {
+      startRun(missed.map(function (q) { return POOL.filter(function (p) { return p.id === q.id; })[0]; }), "Wiederholung falscher Antworten");
+    });
+    document.getElementById("again").addEventListener("click", function () {
+      var list = selectedPool();
+      if (!list.length) { renderStart(); return; }
+      startRun(pickQuestions(list, Math.min(cfg.n, list.length)), cfg.mode === "all" ? "Vollständiger Test" : "Test nach Themen");
+    });
+    document.getElementById("home").addEventListener("click", function () { renderStart(); window.scrollTo(0, 0); });
+  }
+
+  renderStart();
+})();
+</script>
