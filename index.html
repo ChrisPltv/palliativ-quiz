@@ -214,10 +214,11 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .pill.bad { background: var(--bad-soft); color: var(--bad); }
 .pill.neutral { background: var(--accent-soft); color: var(--accent-ink); }
 .cats { display: flex; flex-direction: column; gap: 14px; }
-.cat { display: grid; gap: 6px; }
-.cat .hd { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; flex-wrap: wrap; }
-.cat .nm { font-weight: 600; }
-.cat .ct { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.cat { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; }
+.cat .hd { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; flex-wrap: nowrap; }
+.cat .nm { font-weight: 600; flex: 1 1 auto; min-width: 9ch; }
+.cat .ct { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; flex: 0 1 auto; text-align: right; }
+.cat .ct .state, .cat .ct .cnt { white-space: nowrap; }
 .bar { height: 10px; border-radius: 5px; background: var(--line); overflow: hidden; }
 .bar i { display: block; height: 100%; border-radius: 5px; }
 .bar i.full { background: var(--ok); }
@@ -1381,7 +1382,7 @@ var RAW_C = [
 
 { c: "ethik", k: ["konsens"], sn: "Allgemein anerkanntes Prinzip der Einwilligungsfähigkeit; keine einzelne Quelle benannt.",
   q: "Wie wird Einwilligungsfähigkeit beurteilt?",
-  o: ["Für die konkrete Entscheidung (Verstehen, Bewerten, Willensbildung, Mitteilen), sie kann schwanken.",
+  o: ["Sie wird je Entscheidung beurteilt (Verstehen, Bewerten, Willensbildung, Mitteilen) und kann schwanken.",
       "Wer eine Demenz hat, gilt grundsätzlich nicht mehr als einwilligungsfähig, unabhängig von der Entscheidung.",
       "Die Angehörigen entscheiden, ob die betroffene Person noch in der Lage ist, selbst einzuwilligen.",
       "Sie hängt vom Alter ab, ab einem bestimmten Lebensalter wird sie in der Regel nicht mehr angenommen."],
@@ -1706,7 +1707,7 @@ var RAW = RAW_A.concat(RAW_B, RAW_C);
     app.innerHTML =
       '<header class="hero">' +
         '<h1>Palliativ-Quiz</h1>' +
-        '<p class="lead">Ein Fragenpool mit ' + POOL.length + ' Fragen aus neun Themengebieten. Sie wählen Umfang und Themen, die Fragen werden zufällig gezogen. Nach jeder Antwort erfahren Sie, warum sie stimmt oder nicht, wie verbindlich die Aussage ist und wo die Fachlage unsicher ist.</p>' +
+        '<p class="lead">Quiz zur palliativen Versorgung im Pflegealltag, zum Üben und Wiederholen: ' + POOL.length + ' Fragen aus neun Themengebieten. Sie wählen Umfang und Themen, die Fragen werden zufällig gezogen. Nach jeder Antwort erfahren Sie, warum sie stimmt oder nicht, wie verbindlich die Aussage ist und wo die Fachlage unsicher ist.</p>' +
         '<div class="facts"><span><b>' + POOL.length + '</b> Fragen</span><span><b>9</b> Themen</span><span><b>1</b> Punkt je vollständig richtiger Antwort</span></div>' +
       '</header>' +
       '<section class="panel" aria-labelledby="cfgh">' +
@@ -1975,7 +1976,7 @@ var RAW = RAW_A.concat(RAW_B, RAW_C);
       var label = ratio === 1 ? "Sicher" : (ratio >= 0.6 ? "Teilweise sicher" : "Lücke");
       var w = Math.round(ratio * 100);
       return '<div class="cat"><div class="hd"><span class="nm">' + CATS[k] + '</span>' +
-        '<span class="ct"><span class="state ' + cls + '">' + label + '</span> &nbsp;' + c.ok + ' von ' + c.total + '</span></div>' +
+        '<span class="ct"><span class="state ' + cls + '">' + label + '</span> <span class="cnt">' + c.ok + ' von ' + c.total + '</span></span></div>' +
         '<div class="bar" role="img" aria-label="' + c.ok + ' von ' + c.total + ' richtig"><i class="' + cls + '" style="width:' + (w === 0 ? 3 : w) + '%"></i></div></div>';
     }).join("");
 
