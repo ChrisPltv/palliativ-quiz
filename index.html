@@ -210,7 +210,13 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .einord { display: flex; flex-direction: column; gap: 8px; font-size: 14px; }
 .einord .row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .einord ul { margin: 0; padding-left: 18px; display: grid; gap: 2px; }
-.srcs { font-size: 13px; color: var(--muted); display: flex; flex-direction: column; gap: 4px; }
+.srcs { font-size: 13px; color: var(--muted); }
+.mini summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 6px 0; font-weight: 600; font-size: 14px; color: var(--accent-ink); }
+.mini summary::-webkit-details-marker { display: none; }
+.mini summary::before { content: ""; flex: none; width: 7px; height: 7px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(-45deg); transition: transform .15s; }
+.mini[open] summary::before { transform: rotate(45deg); }
+.mini summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+.minibody { display: flex; flex-direction: column; gap: 4px; padding: 0 0 8px 15px; }
 .srcs ul { margin: 0; padding-left: 18px; display: grid; gap: 3px; }
 .srcs a { overflow-wrap: anywhere; }
 .srcs li { overflow-wrap: anywhere; }
@@ -1852,13 +1858,16 @@ var RAW = RAW_A.concat(RAW_B, RAW_C);
     }).join("");
     var note = q.sn ? '<p>' + esc(q.sn) + '</p>' : "";
     if (!items && !note) note = '<p>Keine Einzelquelle angegeben. Die Aussage beruht auf allgemeinem Fachkonsens und sollte bei Bedarf in Lehrbuch oder Standard nachgelesen werden.</p>';
-    return '<div class="srcs"><span>Quellen und Nachweise:</span>' + (items ? '<ul>' + items + '</ul>' : "") + note + '</div>';
+    var nSrc = (items.match(/<li>/g) || []).length;
+    var label = 'Quellen und Nachweise' + (nSrc ? ' (' + nSrc + ')' : '');
+    return '<details class="mini srcs"><summary>' + label + '</summary><div class="minibody">' + (items ? '<ul>' + items + '</ul>' : "") + note + '</div></details>';
   }
 
   function einordHtml(q) {
     if (q.n) return '<div class="einord"><div class="row"><span class="eyebrow">Einordnung</span>' + q.k.map(chip).join("") + '</div><p>' + esc(q.n) + '</p></div>';
-    return '<div class="einord"><div class="row"><span class="eyebrow">Einordnung</span>' + q.k.map(chip).join("") + '</div><ul>' +
-      q.k.map(function (k) { return '<li><b>' + KINDS[k].label + ':</b> ' + KINDS[k].short + '</li>'; }).join("") + '</ul></div>';
+    return '<div class="einord"><div class="row"><span class="eyebrow">Einordnung</span>' + q.k.map(chip).join("") + '</div>' +
+      '<details class="mini"><summary>Was bedeuten die Schilder?</summary><div class="minibody"><ul>' +
+      q.k.map(function (k) { return '<li><b>' + KINDS[k].label + ':</b> ' + KINDS[k].short + '</li>'; }).join("") + '</ul></div></details></div>';
   }
 
   function evalAnswer(q, picked) {
