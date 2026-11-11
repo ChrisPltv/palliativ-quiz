@@ -140,6 +140,18 @@ legend { padding: 0; font-weight: 600; font-size: 14px; }
 .btn-ghost:hover:not(:disabled) { background: var(--accent-soft); }
 .btn:disabled { opacity: .5; cursor: not-allowed; }
 .actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.resetrow { display: flex; justify-content: flex-start; margin-top: -6px; }
+.notice { background: var(--warn-soft); border: 1px solid var(--warn); border-left-width: 6px; border-radius: 8px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; font-size: 14px; }
+.notice b { color: var(--warn); font-size: 13px; letter-spacing: .08em; text-transform: uppercase; }
+.fold { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+.fold summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 52px; padding: 12px 18px; font-family: var(--font-display); font-size: 18px; font-weight: 500; }
+.fold summary::-webkit-details-marker { display: none; }
+.fold summary::after { content: ""; flex: none; width: 9px; height: 9px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: rotate(45deg); margin-top: -4px; transition: transform .15s; }
+.fold[open] summary::after { transform: rotate(-135deg); margin-top: 4px; }
+.fold summary:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; border-radius: 10px; }
+.foldbody { display: flex; flex-direction: column; gap: 12px; padding: 0 18px 18px; }
+.foldbody.foot { font-size: 13.5px; }
 
 /* Topbar */
 .topbar { display: flex; flex-direction: column; gap: 10px; position: sticky; top: env(safe-area-inset-top, 0px); background: var(--bg); padding-block: 8px; z-index: 5; }
@@ -1707,11 +1719,10 @@ var RAW = RAW_A.concat(RAW_B, RAW_C);
     app.innerHTML =
       '<header class="hero">' +
         '<h1>Palliativ-Quiz</h1>' +
-        '<p class="lead">Quiz zur palliativen Versorgung im Pflegealltag, zum Üben und Wiederholen: ' + POOL.length + ' Fragen aus neun Themengebieten. Sie wählen Umfang und Themen, die Fragen werden zufällig gezogen. Nach jeder Antwort erfahren Sie, warum sie stimmt oder nicht, wie verbindlich die Aussage ist und wo die Fachlage unsicher ist.</p>' +
-        '<div class="facts"><span><b>' + POOL.length + '</b> Fragen</span><span><b>9</b> Themen</span><span><b>1</b> Punkt je vollständig richtiger Antwort</span></div>' +
+        '<p class="lead">Quiz zur palliativen Versorgung im Pflegealltag, zum Üben und Wiederholen. Nach jeder Antwort erfahren Sie, warum sie stimmt und wie verbindlich die Aussage ist.</p>' +
       '</header>' +
       '<section class="panel" aria-labelledby="cfgh">' +
-        '<h2 id="cfgh">Test zusammenstellen</h2>' +
+        '<h2 id="cfgh" class="sr-only">Test zusammenstellen</h2>' +
         '<fieldset><legend>Anzahl der Fragen</legend><div class="seg" id="nseg">' + nChoices + '</div></fieldset>' +
         '<fieldset><legend>Testart</legend><div class="seg" id="mseg">' +
           '<label><input type="radio" name="mode" value="all"' + (cfg.mode === "all" ? " checked" : "") + '><span>Vollständiger Test<small>alle Themen</small></span></label>' +
@@ -1722,14 +1733,26 @@ var RAW = RAW_A.concat(RAW_B, RAW_C);
           '<div class="topics" id="topics">' + topics + '</div>' +
         '</fieldset>' +
         '<div class="info" id="info" aria-live="polite"></div>' +
-        '<div class="actions"><button class="btn btn-primary" id="go" type="button">Test starten</button><button class="btn btn-ghost" id="reset" type="button">Verlauf zurücksetzen</button></div>' +
+        '<div class="notice" role="note"><b>Wichtig</b><p>Nur zum Lernen: keine Behandlungsanweisung, keine ärztliche Anordnung, keine Rechtsberatung. Maßgeblich sind aktuelle Leitlinien, Gesetze und die Standards Ihrer Einrichtung.</p></div>' +
+        '<div class="actions"><button class="btn btn-primary" id="go" type="button">Test starten</button></div>' +
+        '<div class="resetrow"><button class="linkbtn" id="reset" type="button">Verlauf zurücksetzen</button></div>' +
       '</section>' +
-      '<section class="panel" aria-labelledby="lg">' +
-        '<h2 id="lg">Wie verbindlich ist eine Aussage?</h2>' +
-        '<p class="small muted">Jede Frage trägt eine Kennzeichnung. So können Sie Recht, Leitlinienempfehlung und Praxiswissen auseinanderhalten. Weicht die Fachlage ab oder ist die Evidenz schwach, steht „Uneinheitlich“ dabei und ein Hinweis erklärt den Grund.</p>' +
-        '<ul class="legend">' + legend + '</ul>' +
-      '</section>' +
-      '<p class="foot">Lernhilfe für die Weiterbildung, keine Behandlungsanweisung und keine Rechtsberatung. Das Quiz nennt bewusst keine Dosierungen. Recherchestand: 22.10.2026. Die Inhalte stützen sich auf die S3-Leitlinie in der Fassung 2.2 (2020), auf Gesetzestexte, Urteile und Fachartikel. Die 2026 aktualisierte Fassung der Leitlinie habe ich nicht im Volltext geprüft. Quellen, die ich nicht verlinken konnte, sind als Literaturangabe ohne Link genannt. Wo keine belastbare Einzelquelle benannt ist, steht das ausdrücklich dabei. Empfehlungsgrade und Details bitte in den Originalen und in Ihren hausinternen Standards nachlesen.</p>';
+      '<details class="fold">' +
+        '<summary>Wie verbindlich ist eine Aussage?</summary>' +
+        '<div class="foldbody">' +
+          '<p class="small muted">Jede Frage trägt eine Kennzeichnung. So können Sie Recht, Leitlinienempfehlung und Praxiswissen auseinanderhalten. Weicht die Fachlage ab oder ist die Evidenz schwach, steht „Uneinheitlich“ dabei und ein Hinweis erklärt den Grund.</p>' +
+          '<ul class="legend">' + legend + '</ul>' +
+        '</div>' +
+      '</details>' +
+      '<details class="fold">' +
+        '<summary>Wertung, Hinweise und Quellen</summary>' +
+        '<div class="foldbody foot">' +
+          '<p><b>Wertung:</b> 1 Punkt je vollständig richtiger Antwort.</p>' +
+          '<p>Lernhilfe für die Weiterbildung. Das Quiz nennt bewusst keine Dosierungen. Recherchestand: 22.10.2026. Innerhalb einer Runde kommt keine Frage doppelt vor.</p>' +
+          '<p>Die Inhalte stützen sich auf die S3-Leitlinie in der Fassung 2.2 (2020), auf Gesetzestexte, Urteile und Fachartikel. Die 2026 aktualisierte Fassung der Leitlinie habe ich nicht im Volltext geprüft.</p>' +
+          '<p>Quellen, die ich nicht verlinken konnte, sind als Literaturangabe ohne Link genannt. Wo keine belastbare Einzelquelle benannt ist, steht das ausdrücklich dabei. Empfehlungsgrade und Details bitte in den Originalen und in Ihren hausinternen Standards nachlesen.</p>' +
+        '</div>' +
+      '</details>';
 
     function updateInfo() {
       var list = selectedPool();
@@ -1749,7 +1772,7 @@ var RAW = RAW_A.concat(RAW_B, RAW_C);
       go.textContent = "Test starten (" + n + " Fragen)";
       info.innerHTML =
         '<span>Verfügbar: <b>' + total + '</b> Fragen (' + scope + '). Davon noch nicht gesehen: <b>' + unseenN + '</b>.</span>' +
-        '<span class="small muted">Ungesehene Fragen werden bevorzugt. Innerhalb einer Runde kommt keine Frage doppelt vor.' +
+        '<span class="small muted">Ungesehene Fragen werden bevorzugt.' +
         (cfg.n > total ? ' Für diese Auswahl gibt es nur ' + total + ' Fragen, deshalb wird die Runde kürzer.' : '') + '</span>';
     }
 
@@ -1776,7 +1799,20 @@ var RAW = RAW_A.concat(RAW_B, RAW_C);
       Array.prototype.forEach.call(app.querySelectorAll('input[data-t]'), function (c) { c.checked = false; });
       updateInfo();
     });
-    document.getElementById("reset").addEventListener("click", function () {
+    var resetBtn = document.getElementById("reset");
+    var resetTimer = null;
+    resetBtn.addEventListener("click", function () {
+      if (resetTimer === null) {
+        resetBtn.textContent = "Wirklich zurücksetzen? Zum Bestätigen noch einmal tippen";
+        resetTimer = setTimeout(function () {
+          resetBtn.textContent = "Verlauf zurücksetzen";
+          resetTimer = null;
+        }, 6000);
+        return;
+      }
+      clearTimeout(resetTimer);
+      resetTimer = null;
+      resetBtn.textContent = "Verlauf zurücksetzen";
       seen = {}; saveSeen(); missed = {}; saveMissed(); updateInfo();
     });
     document.getElementById("go").addEventListener("click", function () {
